@@ -15,7 +15,6 @@ export const authService = {
 
     if (error) throw error
 
-    // التريجر في Supabase هيعمل إنشاء profile تلقائي
     return {
       user: data.user,
       session: data.session
@@ -30,7 +29,12 @@ export const authService = {
         password
       })
 
-    if (error) throw error
+    console.log("LOGIN DATA:", data)
+    console.log("LOGIN ERROR:", error)
+
+    if (error) {
+      throw new Error(error.message)
+    }
 
     return {
       user: data.user,
