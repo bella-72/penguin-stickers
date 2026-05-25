@@ -29,9 +29,6 @@ export const authService = {
         password
       })
 
-    console.log("LOGIN DATA:", data)
-    console.log("LOGIN ERROR:", error)
-
     if (error) {
       throw new Error(error.message)
     }
@@ -43,6 +40,7 @@ export const authService = {
   },
 
   async signOut() {
+
     const { error } =
       await supabase.auth.signOut()
 
@@ -52,7 +50,13 @@ export const authService = {
   async resetPassword(email) {
 
     const { error } =
-      await supabase.auth.resetPasswordForEmail(email)
+      await supabase.auth.resetPasswordForEmail(
+        email,
+        {
+          redirectTo:
+            'https://penguin-stickers.vercel.app/reset-password'
+        }
+      )
 
     if (error) throw error
   },
