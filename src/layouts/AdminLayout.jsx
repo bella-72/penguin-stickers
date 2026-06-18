@@ -2,7 +2,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   LayoutDashboard, Package, ShoppingBag, FolderTree, Palette, 
-  BarChart3, LogOut, ChevronLeft, Menu, X 
+  BarChart3, LogOut, ChevronLeft, Menu, X, Users 
 } from 'lucide-react'
 import { useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
@@ -12,6 +12,7 @@ const sidebarLinks = [
   { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
   { name: 'Orders', path: '/admin/orders', icon: ShoppingBag },
   { name: 'Products', path: '/admin/products', icon: Package },
+  { name: 'Customers', path: '/admin/customers', icon: Users },
   { name: 'Categories', path: '/admin/categories', icon: FolderTree },
   { name: 'Custom Requests', path: '/admin/custom-requests', icon: Palette },
   { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },

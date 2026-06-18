@@ -1,107 +1,190 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { TrendingUp, DollarSign, ShoppingBag, Package } from 'lucide-react'
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { adminAnalyticsService } from '@/services/adminService'
+import { formatPrice } from '@/utils/helpers'
+import toast from 'react-hot-toast'
 
-const monthlyData = [
-  { name: 'Jan', revenue: 4200, orders: 45, customers: 32 },
-  { name: 'Feb', revenue: 5800, orders: 62, customers: 41 },
-  { name: 'Mar', revenue: 7100, orders: 78, customers: 55 },
-  { name: 'Apr', revenue: 6300, orders: 70, customers: 48 },
-  { name: 'May', revenue: 8900, orders: 95, customers: 67 },
-  { name: 'Jun', revenue: 10200, orders: 112, customers: 82 },
-]
+const AdminAnalytics = () => {
+  const [monthlyData, setMonthlyData] = useState([])
+  const [topProducts, setTopProducts] = useState([])
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-const categoryData = [
-  { name: 'Animals', value: 35, color: '#2ECC71' },
-  { name: 'Nature', value: 25, color: '#4ECDC4' },
-  { name: 'Lifestyle', value: 20, color: '#3498DB' },
-  { name: 'Fantasy', value: 12, color: '#9B59B6' },
-  { name: 'Exclusive', value: 8, color: '#E67E22' },
-]
+  useEffect(() => {
+    fetchAnalyticsData()
+  }, [])
 
-const topProducts = [
-  { name: 'Holographic Penguin Pack', sales: 203, revenue: 12180 },
-  { name: 'Cafe Aesthetic', sales: 156, revenue: 4680 },
-  { name: 'Pastel Galaxy', sales: 145, revenue: 7250 },
-  { name: 'Artisan Penguin', sales: 124, revenue: 4340 },
-  { name: 'Sakura Dreams', sales: 112, revenue: 4256 },
-]
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true)
+      const [monthly, topProd, dashStats] = await Promise.all([
+        adminAnalyticsService.getMonthlyRevenue(6),
+        adminAnalyticsService.getTopSellingProducts(5),
+        adminAnalyticsService.getDashboardStats(),
+      ])
 
-const tooltipStyle = { background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }
+      setMonthlyData(monthly)
+      setTopProducts(topProd)
+      setStats(dashStats)
+    } catch (err) {
+      console.error('Analytics error:', err)
+      toast.error('Failed to load analytics')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-const AdminAnalytics = () => (
-  <div className="space-y-6">
-    <div><h1 className="font-outfit text-2xl font-bold">Analytics</h1><p className="text-gray-400 text-sm">Performance insights and trends</p></div>
+  const analyticsCards = [
+    {
+      label: 'Total Sales',
+      value: stats?.totalRevenue ? formatPrice(stats.totalRevenue) : '0 EGP',
+      icon: DollarSign,
+      color: 'from-green-500 to-emerald-600',
+    },
+    {
+      label: 'Total Orders',
+      value: stats?.totalOrders || 0,
+      icon: ShoppingBag,
+      color: 'from-blue-500 to-cyan-600',
+    },
+    {
+      label: 'Avg Order Value',
+      value: stats?.totalOrders ? formatPrice(stats.totalRevenue / stats.totalOrders) : '0 EGP',
+      icon: TrendingUp,
+      color: 'from-purple-500 to-violet-600',
+    },
+    {
+      label: 'Completion Rate',
+      value: `${stats?.completionRate || 0}%`,
+      icon: Package,
+      color: 'from-orange-500 to-amber-600',
+    },
+  ]
 
-    <div className="grid lg:grid-cols-2 gap-4">
-      {/* Revenue Chart */}
-      <div className="bg-[#141428] rounded-2xl p-5 border border-white/5">
-        <h3 className="font-outfit font-semibold mb-4">Monthly Revenue (EGP)</h3>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d2d4a" />
-            <XAxis dataKey="name" stroke="#666" fontSize={12} />
-            <YAxis stroke="#666" fontSize={12} />
-            <Tooltip contentStyle={tooltipStyle} />
-            <Bar dataKey="revenue" fill="#2ECC71" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+  return (
+    <div className="space-y-6 w-full">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">Analytics</h1>
+        <p className="text-gray-400 text-sm mt-1">View sales and performance metrics</p>
       </div>
 
-      {/* Category Breakdown */}
-      <div className="bg-[#141428] rounded-2xl p-5 border border-white/5">
-        <h3 className="font-outfit font-semibold mb-4">Sales by Category</h3>
-        <div className="flex items-center gap-6">
-          <ResponsiveContainer width="50%" height={200}>
-            <PieChart>
-              <Pie data={categoryData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                {categoryData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}
-              </Pie>
-              <Tooltip contentStyle={tooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-2">
-            {categoryData.map((cat) => (
-              <div key={cat.name} className="flex items-center gap-2 text-sm">
-                <div className="w-3 h-3 rounded-full" style={{ background: cat.color }} />
-                <span className="text-gray-400">{cat.name}</span>
-                <span className="ml-auto font-medium">{cat.value}%</span>
+      {/* Analytics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {analyticsCards.map((card, i) => (
+          <motion.div
+            key={card.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="bg-[#141428] rounded-2xl p-6 border border-white/5 hover:border-white/10 transition-colors"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <p className="text-gray-400 text-sm mb-2">{card.label}</p>
+                <p className="text-2xl md:text-3xl font-bold">{card.value}</p>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Customer Growth */}
-      <div className="bg-[#141428] rounded-2xl p-5 border border-white/5">
-        <h3 className="font-outfit font-semibold mb-4">Customer Growth</h3>
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={monthlyData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#2d2d4a" />
-            <XAxis dataKey="name" stroke="#666" fontSize={12} />
-            <YAxis stroke="#666" fontSize={12} />
-            <Tooltip contentStyle={tooltipStyle} />
-            <Line type="monotone" dataKey="customers" stroke="#4ECDC4" strokeWidth={2} dot={{ fill: '#4ECDC4' }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Top Products */}
-      <div className="bg-[#141428] rounded-2xl p-5 border border-white/5">
-        <h3 className="font-outfit font-semibold mb-4">Top Products</h3>
-        <div className="space-y-3">
-          {topProducts.map((product, i) => (
-            <div key={product.name} className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-brand-primary">{i + 1}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{product.name}</p>
-                <p className="text-xs text-gray-500">{product.sales} sales</p>
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center shrink-0`}>
+                <card.icon className="w-6 h-6 text-white" />
               </div>
-              <span className="text-sm font-medium text-brand-primary">{product.revenue.toLocaleString()} EGP</span>
             </div>
-          ))}
-        </div>
+          </motion.div>
+        ))}
       </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Monthly Revenue */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-[#141428] rounded-2xl p-6 border border-white/5"
+        >
+          <h3 className="font-semibold mb-6 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Monthly Revenue (Last 6 Months)
+          </h3>
+          {monthlyData.length > 0 ? (
+            <div className="h-80 -mx-6">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthlyData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="white/10" />
+                  <XAxis dataKey="month" stroke="white/40" />
+                  <YAxis stroke="white/40" />
+                  <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid white/10' }} />
+                  <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div className="h-80 flex items-center justify-center text-gray-400">No data available</div>
+          )}
+        </motion.div>
+
+        {/* Top Selling Products */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-[#141428] rounded-2xl p-6 border border-white/5"
+        >
+          <h3 className="font-semibold mb-6 flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            Top Selling Products
+          </h3>
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            {topProducts.length > 0 ? (
+              topProducts.map((product, i) => (
+                <div key={product.productId} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-mint flex items-center justify-center text-sm font-bold">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{product.productName}</p>
+                    <p className="text-xs text-gray-400">{product.quantity} sold</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400 text-center py-8">No data available</p>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Revenue Breakdown Bar Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-[#141428] rounded-2xl p-6 border border-white/5"
+      >
+        <h3 className="font-semibold mb-6 flex items-center gap-2">
+          <BarChart className="w-5 h-5" />
+          Revenue Comparison
+        </h3>
+        {monthlyData.length > 0 ? (
+          <div className="h-80 -mx-6">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="white/10" />
+                <XAxis dataKey="month" stroke="white/40" />
+                <YAxis stroke="white/40" />
+                <Tooltip contentStyle={{ background: '#1a1a2e', border: '1px solid white/10' }} />
+                <Bar dataKey="revenue" fill="#10b981" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-80 flex items-center justify-center text-gray-400">No data available</div>
+        )}
+      </motion.div>
     </div>
-  </div>
-)
+  )
+}
+
 
 export default AdminAnalytics

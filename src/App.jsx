@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import MainLayout from '@/layouts/MainLayout'
 import AdminLayout from '@/layouts/AdminLayout'
+import AdminRoute from '@/components/AdminRoute'
 
 // Lazy load pages for performance
 const Home = lazy(() => import('@/pages/Home'))
@@ -14,6 +15,7 @@ const Checkout = lazy(() => import('@/pages/Checkout'))
 const Login = lazy(() => import('@/pages/Login'))
 const Signup = lazy(() => import('@/pages/Signup'))
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'))
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'))
 const Profile = lazy(() => import('@/pages/Profile'))
 const About = lazy(() => import('@/pages/About'))
 
@@ -21,11 +23,11 @@ const About = lazy(() => import('@/pages/About'))
 const AdminDashboard = lazy(() => import('@/pages/admin/Dashboard'))
 const AdminOrders = lazy(() => import('@/pages/admin/Orders'))
 const AdminProducts = lazy(() => import('@/pages/admin/Products'))
+const AdminCustomers = lazy(() => import('@/pages/admin/Customers'))
 const AdminCategories = lazy(() => import('@/pages/admin/Categories'))
 const AdminCustomRequests = lazy(() => import('@/pages/admin/CustomRequests'))
 const AdminAnalytics = lazy(() => import('@/pages/admin/Analytics'))
 
-// Loading fallback
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-brand-light dark:bg-[#0f0f1a]">
     <div className="text-center">
@@ -37,7 +39,9 @@ const PageLoader = () => (
           <polygon points="12,12 11,13.5 13,13.5" fill="#F39C12"/>
         </svg>
       </div>
-      <p className="text-sm text-brand-gray-400 animate-pulse">Loading...</p>
+      <p className="text-sm text-brand-gray-400 animate-pulse">
+        Loading...
+      </p>
     </div>
   </div>
 )
@@ -53,12 +57,14 @@ function App() {
     <Router>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          {/* Auth pages (no layout) */}
+
+          {/* Auth pages */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Main store pages */}
+          {/* Main pages */}
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
@@ -71,14 +77,16 @@ function App() {
           </Route>
 
           {/* Admin pages */}
-          <Route path="/admin" element={<AdminLayout />}>
+          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="products" element={<AdminProducts />} />
+            <Route path="customers" element={<AdminCustomers />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="custom-requests" element={<AdminCustomRequests />} />
             <Route path="analytics" element={<AdminAnalytics />} />
           </Route>
+
         </Routes>
       </Suspense>
     </Router>
