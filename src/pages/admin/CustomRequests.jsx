@@ -264,30 +264,4 @@ const AdminCustomRequests = () => {
 }
 
 export default AdminCustomRequests
-            <th className="text-left px-5 py-3">Status</th>
-            <th className="text-left px-5 py-3">Date</th>
-          </tr></thead>
-          <tbody>
-            {demoRequests.map((req) => (
-              <tr key={req.id} className="border-t border-white/5 hover:bg-white/5 transition-colors">
-                <td className="px-5 py-3 font-medium text-brand-primary">{req.id}</td>
-                <td className="px-5 py-3">{req.user_name}</td>
-                <td className="px-5 py-3 font-medium">{req.name}</td>
-                <td className="px-5 py-3">{req.quantity}</td>
-                <td className="px-5 py-3 capitalize text-gray-400">{req.finish_type}</td>
-                <td className="px-5 py-3">
-                  <select defaultValue={req.status} className={`px-3 py-1 rounded-full text-xs font-medium capitalize bg-transparent border border-white/10 cursor-pointer ${statusColors[req.status]}`}>
-                    {Object.keys(statusColors).map(s => <option key={s} value={s} className="bg-[#141428] text-white">{s.replace('_', ' ')}</option>)}
-                  </select>
-                </td>
-                <td className="px-5 py-3 text-gray-400">{formatDate(req.created_at)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-)
-
-export default AdminCustomRequests
+          
