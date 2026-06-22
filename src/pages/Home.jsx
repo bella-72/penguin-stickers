@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
-import { ArrowRight, Droplets, Award, Truck, Leaf, Star, ChevronRight, Mail } from 'lucide-react'
+import { ArrowRight, Droplets, Award, Truck, Leaf, Star, ChevronRight, Send } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import Button from '@/components/ui/Button'
-import { demoProducts, demoReviews } from '@/utils/helpers'
+import { demoProducts } from '@/utils/helpers'
+import { useAuthStore } from '@/store/authStore'
+import { reviewsService } from '@/services/reviews'
+import toast from 'react-hot-toast'
 
 /* ─── Animated Section Wrapper ──────── */
 const Section = ({ children, className = '', delay = 0 }) => {
@@ -79,7 +82,7 @@ const Hero = () => (
               className="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-primary/10 rounded-full mb-6"
             >
               <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
-              <span className="text-sm font-medium text-brand-primary">New Collection 2024</span>
+              <span className="text-sm font-medium text-brand-primary">New Collection 2026</span>
             </motion.div>
 
             <h1 className="font-outfit text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] text-brand-gray-900 dark:text-white">
@@ -351,82 +354,222 @@ const WhyChooseUs = () => {
   )
 }
 
-/* ─── Testimonials ──────── */
-const Testimonials = () => (
-  <Section className="py-20 bg-brand-gray-50/50 dark:bg-brand-dark/50">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <p className="text-sm font-medium text-brand-primary uppercase tracking-wider mb-2">Social proof</p>
-      <h2 className="font-outfit text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-white mb-4">
-        What Our Stick-Fans Say
-      </h2>
-      <p className="text-brand-gray-500 dark:text-brand-gray-400 mb-12">
-        Join over 10,000+ happy customers who love their stickers.
-      </p>
+/* ─── Customer Feedback & Reviews ──────── */
+const CustomerFeedback = () => {
+  const { user, profile } = useAuthStore()
+  const [reviews, setReviews] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [userReview, setUserReview] = useState(null)
+  const [formData, setFormData] = useState({ rating: 5, comment: '' })
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {demoReviews.map((review, i) => (
-          <motion.div
-            key={review.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.15 }}
-            className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card text-left"
-          >
-            <div className="flex gap-1 mb-4">
-              {Array.from({ length: review.rating }).map((_, j) => (
-                <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              ))}
-            </div>
-            <p className="text-sm text-brand-gray-600 dark:text-brand-gray-300 leading-relaxed mb-4">
-              "{review.comment}"
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-mint flex items-center justify-center text-white font-bold text-sm">
-                {review.user_name[0]}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-brand-gray-800 dark:text-white">{review.user_name}</p>
-                <p className="text-xs text-brand-gray-400">Verified Buyer</p>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  </Section>
-)
+  useEffect(() => {
+    loadReviews()
+  }, [])
 
-/* ─── Newsletter ──────── */
-const Newsletter = () => {
-  const [email, setEmail] = useState('')
+  const loadReviews = async () => {
+    setLoading(true)
+    const data = await reviewsService.getReviews(6)
+    setReviews(data)
+    
+    if (profile?.full_name) {
+      const existing = await reviewsService.getUserReview(profile.full_name)
+      setUserReview(existing)
+      if (existing) {
+        setFormData({ rating: existing.rating, comment: existing.comment })
+      }
+    }
+    setLoading(false)
+  }
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault()
+    
+    if (!profile?.full_name) {
+      toast.error('Please log in to submit a review')
+      return
+    }
+
+    if (!formData.comment.trim()) {
+      toast.error('Please write a review')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      let result
+      if (userReview) {
+        result = await reviewsService.updateReview(userReview.id, formData.rating, formData.comment)
+      } else {
+        result = await reviewsService.createReview(profile.full_name, formData.rating, formData.comment)
+      }
+
+      if (result.success) {
+        toast.success(userReview ? 'Review updated!' : 'Review submitted!')
+        setFormData({ rating: 5, comment: '' })
+        loadReviews()
+      } else {
+        toast.error(result.error || 'Failed to submit review')
+      }
+    } catch (error) {
+      toast.error('Error submitting review')
+      console.error(error)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
-    <Section className="py-20">
+    <Section className="py-20 bg-brand-gray-50/50 dark:bg-brand-dark/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-br from-brand-primary to-brand-accent rounded-3xl p-8 md:p-14 text-center text-white relative overflow-hidden">
-          <div className="absolute inset-0">
-            <div className="absolute top-0 right-0 w-60 h-60 rounded-full bg-white/10 -translate-y-1/2 translate-x-1/3" />
-            <div className="absolute bottom-0 left-0 w-40 h-40 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
-          </div>
-          <div className="relative z-10 max-w-xl mx-auto space-y-6">
-            <h2 className="font-outfit text-3xl md:text-4xl font-bold">Stay In The Loop</h2>
-            <p className="text-white/80">
-              Get 15% off your first order and be the first to know about new designs, sales, and exclusive offers.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <div className="flex-1 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="w-full pl-10 pr-4 py-3 rounded-full bg-white text-brand-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white/30"
-                />
+        <div className="text-center mb-12">
+          <p className="text-sm font-medium text-brand-primary uppercase tracking-wider mb-2">Community voices</p>
+          <h2 className="font-outfit text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-white mb-4">
+            Customer Feedback & Reviews
+          </h2>
+          <p className="text-brand-gray-500 dark:text-brand-gray-400 max-w-2xl mx-auto">
+            See what 10,000+ happy customers think about Penguin Stick. Share your experience and help others discover their perfect stickers.
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Reviews Feed */}
+          <div className="lg:col-span-2">
+            {loading ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-white dark:bg-brand-dark rounded-2xl p-6 animate-pulse h-32" />
+                ))}
               </div>
-              <button className="px-6 py-3 bg-white text-brand-primary font-semibold rounded-full hover:bg-white/90 transition-colors text-sm whitespace-nowrap">
-                Subscribe
-              </button>
+            ) : reviews.length > 0 ? (
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                {reviews.map((review, i) => (
+                  <motion.div
+                    key={review.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-shadow"
+                  >
+                    <div className="flex gap-1 mb-3">
+                      {Array.from({ length: review.rating }).map((_, j) => (
+                        <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-brand-gray-600 dark:text-brand-gray-300 leading-relaxed mb-4">
+                      "{review.comment}"
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-gradient-mint flex items-center justify-center text-white font-bold text-xs">
+                          {review.user_name?.[0]?.toUpperCase() || 'C'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-brand-gray-800 dark:text-white">
+                            {review.user_name || 'Customer'}
+                          </p>
+                          <p className="text-xs text-brand-gray-400">✓ Verified Buyer</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-brand-gray-400">
+                        {new Date(review.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white dark:bg-brand-dark rounded-2xl p-12 text-center">
+                <Star className="w-12 h-12 text-brand-gray-300 mx-auto mb-4" />
+                <p className="text-brand-gray-500">No reviews yet. Be the first to share your experience!</p>
+              </div>
+            )}
+          </div>
+
+          {/* Review Form */}
+          <div className="lg:col-span-1">
+            <div className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card sticky top-28 max-h-[500px] overflow-y-auto">
+              <h3 className="font-outfit text-lg font-semibold mb-4 text-brand-gray-900 dark:text-white">
+                Share Your Feedback
+              </h3>
+
+              {!user ? (
+                <div className="text-center py-6">
+                  <p className="text-sm text-brand-gray-500 mb-4">Sign in to submit your review</p>
+                  <Link to="/login">
+                    <Button size="sm" className="w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmitReview} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-brand-gray-600 dark:text-brand-gray-300 mb-2 uppercase">
+                      Your Rating
+                    </label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setFormData({ ...formData, rating: star })}
+                          className="transition-transform hover:scale-110"
+                        >
+                          <Star
+                            className={`w-6 h-6 ${
+                              star <= formData.rating
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-brand-gray-300'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-brand-gray-600 dark:text-brand-gray-300 mb-2 uppercase">
+                      Your Review
+                    </label>
+                    <textarea
+                      value={formData.comment}
+                      onChange={(e) => setFormData({ ...formData, comment: e.target.value })}
+                      placeholder="Share your experience with Penguin Stick stickers..."
+                      maxLength={500}
+                      className="w-full px-4 py-3 border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl bg-white dark:bg-brand-dark text-sm focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all resize-none"
+                      rows={5}
+                    />
+                    <p className="text-xs text-brand-gray-400 mt-1">
+                      {formData.comment.length}/500
+                    </p>
+                  </div>
+
+                  <div className="pt-2">
+                    <p className="text-xs text-brand-gray-500 mb-3 flex items-center gap-2">
+                      <span className="inline-block w-3 h-3 rounded-full bg-brand-primary/20" />
+                      {profile?.full_name}
+                    </p>
+                    <Button
+                      type="submit"
+                      disabled={submitting || !formData.comment.trim()}
+                      className="w-full"
+                      size="sm"
+                      icon={Send}
+                      loading={submitting}
+                    >
+                      {userReview ? 'Update Review' : 'Submit Review'}
+                    </Button>
+                  </div>
+
+                  {userReview && (
+                    <p className="text-xs text-brand-gray-400 text-center">
+                      You already have a review. Edit it above.
+                    </p>
+                  )}
+                </form>
+              )}
             </div>
           </div>
         </div>
@@ -444,8 +587,7 @@ const Home = () => {
       <FeaturedStickers />
       <CustomOrdersCTA />
       <WhyChooseUs />
-      <Testimonials />
-      <Newsletter />
+      <CustomerFeedback />
     </>
   )
 }

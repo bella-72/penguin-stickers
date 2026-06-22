@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
+import { authService } from '@/services/auth'
 
 const Login = () => {
   const navigate = useNavigate()
@@ -16,19 +17,59 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    if (!email || !password) { toast.error('Please fill in all fields'); return }
-    setLoading(true)
-    try {
-      const { isAdmin } = await signIn(email, password)
-      toast.success('Welcome back! 🐧')
-      navigate(isAdmin ? '/admin' : '/')
-    } catch (err) {
-      toast.error(err.message || 'Invalid credentials')
-    } finally {
-      setLoading(false)
-    }
+  e.preventDefault()
+
+  if (!email || !password) {
+    toast.error('Please fill in all fields')
+    return
   }
+
+  try {
+    setLoading(true)
+
+    const { isAdmin } = await signIn(email, password)
+
+    toast.success('Welcome back! 🐧')
+
+    navigate(isAdmin ? '/admin' : '/')
+
+  } catch (err) {
+
+    console.log("LOGIN ERROR:", err)
+
+    const message =
+      err?.message ||
+      err?.error_description ||
+      String(err)
+
+    if (message.toLowerCase().includes('invalid login credentials')) {
+
+      toast.error('Invalid email or password')
+
+    } else if (
+      message.toLowerCase().includes('email not confirmed')
+    ) {
+
+      toast.error('Please confirm your email first')
+
+    } else if (
+      message.toLowerCase().includes('user not found')
+    ) {
+
+      toast.error('No account found with this email')
+
+    } else {
+
+      toast.error(message)
+
+    }
+
+  } finally {
+
+    setLoading(false)
+
+  }
+}
 
   return (
     <div className="min-h-screen flex">
@@ -49,14 +90,8 @@ const Login = () => {
           </motion.div>
         </div>
         <div className="relative z-10 text-center px-12">
-          <div className="w-32 h-32 rounded-full bg-white dark:bg-brand-dark shadow-xl flex items-center justify-center mx-auto mb-8">
-            <svg viewBox="0 0 100 100" className="w-20 h-20">
-              <ellipse cx="50" cy="55" rx="28" ry="35" fill="#1a1a2e"/>
-              <ellipse cx="50" cy="52" rx="20" ry="27" fill="white"/>
-              <circle cx="42" cy="45" r="4" fill="#1a1a2e"/>
-              <circle cx="58" cy="45" r="4" fill="#1a1a2e"/>
-              <polygon points="50,52 46,58 54,58" fill="#F39C12"/>
-            </svg>
+          <div className="mx-auto mb-8 flex items-center justify-center">
+            <img src="/7665.png" alt="Penguin Stick" className="w-48 h-auto object-contain" />
           </div>
           <h2 className="font-outfit text-4xl font-bold text-brand-primary mb-3">Collect Joy.</h2>
           <p className="text-brand-gray-600 dark:text-brand-gray-400">Premium die-cut stickers for your notebooks, laptops, and life.</p>
@@ -93,6 +128,15 @@ const Login = () => {
             </label>
 
             <Button type="submit" className="w-full" size="lg" loading={loading}>Login</Button>
+
+            {/* Debug: Test toast notification */}
+            <button
+              type="button"
+              onClick={() => toast.success('Toast is working ✅')}
+              className="w-full py-2 text-xs text-brand-gray-400 hover:text-brand-gray-600 dark:hover:text-brand-gray-300 transition-colors"
+            >
+              Test Toast
+            </button>
           </form>
 
           <div className="relative my-8">
@@ -100,13 +144,20 @@ const Login = () => {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-brand-light dark:bg-[#0f0f1a] px-4 text-brand-gray-400">or continue with</span></div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800 transition-colors text-sm font-medium">
-              <span className="text-lg">G</span> Google
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800 transition-colors text-sm font-medium">
-              <span className="text-lg">🍎</span> Apple
-            </button>
+          <div className="flex justify-center">
+            <button
+  onClick={async () => {
+    try {
+      await authService.signInWithGoogle()
+    } catch (err) {
+      toast.error(err.message)
+    }
+  }}
+  className="flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800 transition-colors text-sm font-medium"
+>
+  <span className="text-lg">G</span>
+  Google
+</button>
           </div>
 
           <p className="text-center text-sm text-brand-gray-500 mt-8">

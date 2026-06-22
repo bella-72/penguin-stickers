@@ -1,29 +1,26 @@
 import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Upload, X, Image as ImageIcon, Sparkles, Clock, Leaf } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Sparkles } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Input'
 import toast from 'react-hot-toast'
-
-const finishOptions = [
-  { value: 'matte', label: 'Matte', icon: '🎨', desc: 'Smooth, non-reflective' },
-  { value: 'glossy', label: 'Glossy', icon: '✨', desc: 'Shiny, vibrant colors' },
-  { value: 'holographic', label: 'Holographic', icon: '🌈', desc: 'Rainbow shimmer' },
-]
+import { useCartStore } from '@/store/cartStore'
+import { useNavigate } from 'react-router-dom'
 
 const CustomSticker = () => {
+  const navigate = useNavigate()
+  const addItem = useCartStore((state) => state.addItem)
   const [file, setFile] = useState(null)
   const [preview, setPreview] = useState(null)
   const [dragActive, setDragActive] = useState(false)
   const [stickerName, setStickerName] = useState('')
-  const [finish, setFinish] = useState('matte')
-  const [quantity, setQuantity] = useState(50)
+  const [quantity, setQuantity] = useState(1)
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  const pricePerSticker = 0.45
+  const pricePerSticker = 7
   const totalEstimate = (quantity * pricePerSticker).toFixed(2)
 
   const handleDrag = useCallback((e) => {
@@ -53,11 +50,39 @@ const CustomSticker = () => {
     e.preventDefault()
     if (!file) { toast.error('Please upload an image'); return }
     if (!stickerName) { toast.error('Please enter a sticker name'); return }
+    
     setLoading(true)
-    await new Promise(r => setTimeout(r, 2000))
-    setSubmitted(true)
-    setLoading(false)
-    toast.success('Custom sticker request submitted!')
+    
+    try {
+      // Create a custom sticker product object
+      const customProduct = {
+        id: `custom-${Date.now()}`,
+        name: stickerName,
+        price: pricePerSticker,
+        image: preview,
+        isCustom: true,
+        notes: notes
+      }
+      
+      // Add to cart
+      addItem(customProduct, quantity)
+      
+      toast.success('Custom sticker added to cart!')
+      
+      // Reset form and navigate to cart
+      setFile(null)
+      setPreview(null)
+      setStickerName('')
+      setNotes('')
+      setQuantity(1)
+      
+      setTimeout(() => navigate('/cart'), 1000)
+    } catch (err) {
+      toast.error('Failed to add to cart')
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (submitted) {
@@ -67,11 +92,16 @@ const CustomSticker = () => {
           <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6">
             <Sparkles className="w-10 h-10 text-green-500" />
           </div>
-          <h2 className="font-outfit text-3xl font-bold mb-3">Request Submitted! ✨</h2>
-          <p className="text-brand-gray-500 mb-6">We'll review your design and get back to you within 24 hours with a proof.</p>
-          <Button onClick={() => { setSubmitted(false); setFile(null); setPreview(null); setStickerName(''); setNotes('') }}>
-            Submit Another
-          </Button>
+          <h2 className="font-outfit text-3xl font-bold mb-3">Added to Cart! ✨</h2>
+          <p className="text-brand-gray-500 mb-6">Your custom sticker has been added. Proceed to checkout to complete your order.</p>
+          <div className="flex gap-3">
+            <Button onClick={() => { setSubmitted(false); setFile(null); setPreview(null); setStickerName(''); setNotes(''); setQuantity(1) }}>
+              Create Another
+            </Button>
+            <Button onClick={() => navigate('/cart')} variant="outline">
+              View Cart
+            </Button>
+          </div>
         </motion.div>
       </div>
     )
@@ -136,39 +166,22 @@ const CustomSticker = () => {
                 <Input label="Sticker Name" value={stickerName} onChange={(e) => setStickerName(e.target.value)} placeholder="E.g., Pastel Space Whale" />
               </motion.div>
 
-              {/* Finish Options */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card">
-                <p className="text-sm font-semibold text-brand-gray-700 dark:text-brand-gray-300 mb-3">Finish Option</p>
-                <div className="grid grid-cols-3 gap-3">
-                  {finishOptions.map((f) => (
-                    <button key={f.value} type="button" onClick={() => setFinish(f.value)}
-                      className={`p-3 rounded-xl border-2 text-center transition-all ${
-                        finish === f.value ? 'border-brand-primary bg-brand-primary/5' : 'border-brand-gray-200 dark:border-brand-gray-700'
-                      }`}>
-                      <span className="text-xl">{f.icon}</span>
-                      <p className={`text-xs font-medium mt-1 ${finish === f.value ? 'text-brand-primary' : ''}`}>{f.label}</p>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-
               {/* Quantity */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                 className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card">
                 <p className="text-sm font-semibold text-brand-gray-700 dark:text-brand-gray-300 mb-3">Quantity</p>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 bg-brand-gray-50 dark:bg-brand-gray-800 rounded-full p-1">
-                    <button type="button" onClick={() => setQuantity(Math.max(10, quantity - 10))} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-brand-gray-700">−</button>
+                    <button type="button" onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-brand-gray-700">−</button>
                     <span className="w-14 text-center font-medium">{quantity}</span>
-                    <button type="button" onClick={() => setQuantity(quantity + 10)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-brand-gray-700">+</button>
+                    <button type="button" onClick={() => setQuantity(quantity + 1)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-brand-gray-700">+</button>
                   </div>
-                  <span className="text-sm text-brand-gray-400">${pricePerSticker} per sticker</span>
+                  <span className="text-sm text-brand-gray-400">{pricePerSticker} EGP per sticker</span>
                 </div>
               </motion.div>
 
               {/* Notes */}
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
                 className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card">
                 <Textarea label="Customization Notes (Optional)" value={notes} onChange={(e) => setNotes(e.target.value)}
                   placeholder="Add specific cutting instructions or color notes..." rows={4} />
@@ -198,25 +211,12 @@ const CustomSticker = () => {
                 {/* Price & Submit */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
                   className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-brand-gray-400 uppercase tracking-wider">Total Estimate</p>
-                      <p className="font-outfit text-3xl font-bold text-brand-primary">${totalEstimate}</p>
+                      <p className="font-outfit text-3xl font-bold text-brand-primary">{totalEstimate} EGP</p>
                     </div>
                     <Button type="submit" size="lg" loading={loading}>Add To Cart</Button>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 pt-4 border-t border-brand-gray-100 dark:border-brand-gray-700">
-                    {[
-                      { icon: Sparkles, label: 'Free Proofs' },
-                      { icon: Clock, label: '3-Day Turnaround' },
-                      { icon: Leaf, label: 'Eco-Friendly Ink' },
-                    ].map((b) => (
-                      <div key={b.label} className="text-center">
-                        <b.icon className="w-4 h-4 text-brand-primary mx-auto mb-1" />
-                        <p className="text-[10px] text-brand-gray-500">{b.label}</p>
-                      </div>
-                    ))}
                   </div>
                 </motion.div>
               </div>

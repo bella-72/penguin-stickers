@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Instagram, Twitter, Facebook, Mail, MapPin, Phone } from 'lucide-react'
+import { Instagram, Facebook, Mail, MapPin, Phone } from 'lucide-react'
 
 const Footer = () => {
   return (
@@ -23,11 +23,12 @@ const Footer = () => {
               Premium custom die-cut stickers. Made with love for stationery enthusiasts. Waterproof, vinyl, eco-friendly.
             </p>
             <div className="flex gap-3">
-              {[Instagram, Twitter, Facebook].map((Icon, i) => (
-                <a key={i} href="#" className="w-9 h-9 rounded-full bg-brand-gray-100 dark:bg-brand-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 text-brand-gray-500">
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
+              <a href="https://www.instagram.com/penguin.stick/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-brand-gray-100 dark:bg-brand-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 text-brand-gray-500">
+                <Instagram className="w-4 h-4" />
+              </a>
+              <a href="https://www.facebook.com/profile.php?id=61583595386505&rdid=kzJqx3NPyebdYMwj&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1DxbzqNYRq%2F#" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-brand-gray-100 dark:bg-brand-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 text-brand-gray-500">
+                <Facebook className="w-4 h-4" />
+              </a>
             </div>
           </div>
 
@@ -81,11 +82,11 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-3 text-sm text-brand-gray-500 dark:text-brand-gray-400">
                 <Phone className="w-4 h-4 mt-0.5 shrink-0" />
-                +20 123 456 7890
+                <a href="tel:01143608754" className="hover:text-brand-primary transition-colors">01143608754</a>
               </li>
               <li className="flex items-start gap-3 text-sm text-brand-gray-500 dark:text-brand-gray-400">
                 <Mail className="w-4 h-4 mt-0.5 shrink-0" />
-                hello@penguinstick.com
+                <a href="mailto:mbasmla76@gmail.com" className="hover:text-brand-primary transition-colors">mbasmla76@gmail.com</a>
               </li>
             </ul>
           </div>
@@ -93,7 +94,7 @@ const Footer = () => {
 
         <div className="mt-12 pt-8 border-t border-brand-gray-100 dark:border-brand-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-brand-gray-400">
-            © 2024 Penguin Stick. Made with love for stationery enthusiasts.
+            © 2026 Penguin Stick. Made with love for stationery enthusiasts.
           </p>
           <div className="flex items-center gap-6">
             {['Privacy Policy', 'Terms of Service', 'Shipping & Returns', 'Contact Us', 'FAQ'].map((item) => (

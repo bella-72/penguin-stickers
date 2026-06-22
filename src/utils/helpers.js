@@ -34,6 +34,50 @@ export const getStatusColor = (status) => {
   return colors[status] || 'bg-gray-100 text-gray-800'
 }
 
+export const shippingRates = {
+  // 65 EGP Governorates
+  Cairo: 65,
+  Giza: 65,
+  Qalyubia: 65,
+  
+  // 75 EGP Governorates
+  Sharkia: 75,
+  Alexandria: 75,
+  Dakahlia: 75,
+  Gharbia: 75,
+  Damietta: 75,
+  'Menofia': 75,
+  'Kafr El Sheikh': 75,
+  Beheira: 75,
+  
+  // 80 EGP Governorates
+  Ismailia: 80,
+  
+  // 85 EGP Governorates
+  Suez: 85,
+  
+  // 90 EGP Governorates
+  Fayoum: 90,
+  'Assiut': 90,
+  Minya: 90,
+  'Beni Suef': 90,
+  
+  // 115 EGP Governorates
+  Aswan: 115,
+  Luxor: 115,
+  'Red Sea': 115,
+  Qena: 115,
+  
+  // 125 EGP Governorates
+  'New Valley': 125,
+  'South Sinai': 125,
+  Matrouh: 125,
+}
+
+export const getShippingRate = (governorate) => {
+  return shippingRates[governorate] || 65
+}
+
 export const governorates = [
   'Cairo', 'Giza', 'Alexandria', 'Dakahlia', 'Red Sea', 'Beheira',
   'Fayoum', 'Gharbia', 'Ismailia', 'Menofia', 'Minya', 'Qalyubia',

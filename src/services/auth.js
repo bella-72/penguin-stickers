@@ -30,7 +30,7 @@ export const authService = {
       })
 
     if (error) {
-      throw new Error(error.message)
+      throw error
     }
 
     return {
@@ -38,7 +38,16 @@ export const authService = {
       session: data.session
     }
   },
+async signInWithGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin
+    }
+  })
 
+  if (error) throw error
+},
   async signOut() {
 
     const { error } =
@@ -123,4 +132,5 @@ export const authService = {
   onAuthStateChange(callback) {
     return supabase.auth.onAuthStateChange(callback)
   }
+  
 }

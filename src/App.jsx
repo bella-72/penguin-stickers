@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from '@/store/authStore'
 import MainLayout from '@/layouts/MainLayout'
 import AdminLayout from '@/layouts/AdminLayout'
@@ -55,6 +56,25 @@ function App() {
 
   return (
     <Router>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2500,
+          success: {
+            duration: 2500,
+          },
+          error: {
+            duration: 3500,
+          },
+          style: {
+            background: 'var(--color-surface)',
+            color: 'var(--color-text)',
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
+            border: '1px solid var(--color-border)',
+          },
+        }}
+      />
       <Suspense fallback={<PageLoader />}>
         <Routes>
 

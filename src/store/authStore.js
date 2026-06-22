@@ -23,12 +23,36 @@ export const useAuthStore = create((set, get) => ({
   },
 
   signIn: async (email, password) => {
+  try {
+
     const { user } = await authService.signIn(email, password)
-    const profile = await authService.getUserProfile(user.id).catch(() => null)
-    const isAdmin = profile?.role === 'admin'
-    set({ user, profile, isAdmin })
-    return { user, profile, isAdmin }
-  },
+
+    const profile =
+      await authService.getUserProfile(user.id).catch(() => null)
+
+    const isAdmin =
+      profile?.role === 'admin'
+
+    set({
+      user,
+      profile,
+      isAdmin
+    })
+
+    return {
+      user,
+      profile,
+      isAdmin
+    }
+
+  } catch (error) {
+
+    console.log("STORE LOGIN ERROR:", error)
+
+    throw error
+
+  }
+},
 
   signUp: async (email, password, fullName) => {
     const { user } = await authService.signUp(email, password, fullName)

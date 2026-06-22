@@ -41,14 +41,8 @@ const Signup = () => {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-brand-accent/20 via-mint-100 to-brand-light dark:from-brand-dark dark:to-brand-dark relative overflow-hidden items-center justify-center">
         <div className="relative z-10 text-center px-12">
           <motion.div animate={{ y: [-5, 5, -5] }} transition={{ duration: 5, repeat: Infinity }}
-            className="w-32 h-32 rounded-full bg-white dark:bg-brand-dark shadow-xl flex items-center justify-center mx-auto mb-8">
-            <svg viewBox="0 0 100 100" className="w-20 h-20">
-              <ellipse cx="50" cy="55" rx="28" ry="35" fill="#1a1a2e"/>
-              <ellipse cx="50" cy="52" rx="20" ry="27" fill="white"/>
-              <circle cx="42" cy="45" r="4" fill="#1a1a2e"/>
-              <circle cx="58" cy="45" r="4" fill="#1a1a2e"/>
-              <polygon points="50,52 46,58 54,58" fill="#F39C12"/>
-            </svg>
+            className="mx-auto mb-8 flex items-center justify-center">
+            <img src="/7665.png" alt="Penguin Stick" className="w-48 h-auto object-contain" />
           </motion.div>
           <h2 className="font-outfit text-4xl font-bold text-brand-primary mb-3">Join the Fun!</h2>
           <p className="text-brand-gray-600 dark:text-brand-gray-400">Create your account and start collecting premium stickers.</p>

@@ -1,10 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { getShippingRate } from '@/utils/helpers'
 
 export const useCartStore = create(
   persist(
     (set, get) => ({
       items: [],
+      selectedGovernorate: '',
+      
+      setGovernorate: (governorate) => {
+        set({ selectedGovernorate: governorate })
+      },
       
       addItem: (product, quantity = 1, finishType = 'matte') => {
         set((state) => {
@@ -63,8 +69,10 @@ export const useCartStore = create(
       },
 
       getShipping: () => {
-        const subtotal = get().getSubtotal()
-        return subtotal >= 300 ? 0 : 35
+        const governorate = get().selectedGovernorate
+        // Return 0 if no governorate selected yet
+        if (!governorate) return 0
+        return getShippingRate(governorate)
       },
 
       getTotal: () => {

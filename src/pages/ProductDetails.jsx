@@ -12,7 +12,6 @@ import toast from 'react-hot-toast'
 const ProductDetails = () => {
   const { slug } = useParams()
   const [product, setProduct] = useState(null)
-  const [selectedFinish, setSelectedFinish] = useState('matte')
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('description')
   const [isWishlisted, setIsWishlisted] = useState(false)
@@ -27,14 +26,9 @@ const ProductDetails = () => {
   if (!product) return null
 
   const relatedProducts = demoProducts.filter(p => p.id !== product.id).slice(0, 4)
-  const finishes = [
-    { value: 'matte', label: 'Matte', icon: '🎨' },
-    { value: 'glossy', label: 'Glossy', icon: '✨' },
-    { value: 'holographic', label: 'Holographic', icon: '🌈' },
-  ]
 
   const handleAddToCart = () => {
-    addItem(product, quantity, selectedFinish)
+    addItem(product, quantity)
     toast.success(`${product.name} added to cart!`, { icon: '🛒' })
   }
 
@@ -74,19 +68,7 @@ const ProductDetails = () => {
             </div>
             <p className="text-brand-gray-600 dark:text-brand-gray-400 leading-relaxed">{product.description}</p>
 
-            <div>
-              <p className="text-sm font-semibold text-brand-gray-700 dark:text-brand-gray-300 mb-3">Finish Option</p>
-              <div className="flex gap-3">
-                {finishes.filter(f => product.finish_types?.includes(f.value)).map((f) => (
-                  <button key={f.value} onClick={() => setSelectedFinish(f.value)}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all text-sm font-medium ${selectedFinish === f.value ? 'border-brand-primary bg-brand-primary/5 text-brand-primary' : 'border-brand-gray-200 dark:border-brand-gray-700 hover:border-brand-gray-300'}`}>
-                    <span>{f.icon}</span> {f.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 pt-2">
+            <div className="flex items-center gap-4 pt-6">
               <div className="flex items-center gap-1 bg-brand-gray-50 dark:bg-brand-gray-800 rounded-full p-1">
                 <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-brand-gray-700"><Minus className="w-4 h-4" /></button>
                 <span className="w-10 text-center font-medium">{quantity}</span>
