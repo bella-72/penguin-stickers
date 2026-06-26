@@ -69,6 +69,10 @@ export const useCartStore = create(
       },
 
       getShipping: () => {
+        const subtotal = get().getSubtotal()
+        // Free shipping for orders >= 500 EGP
+        if (subtotal >= 500) return 0
+        
         const governorate = get().selectedGovernorate
         // Return 0 if no governorate selected yet
         if (!governorate) return 0

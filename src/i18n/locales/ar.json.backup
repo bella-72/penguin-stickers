@@ -1,0 +1,146 @@
+{
+  "common": {
+    "language": "اللغة",
+    "english": "English",
+    "arabic": "العربية",
+    "loading": "جاري التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "cancel": "إلغاء",
+    "submit": "إرسال",
+    "save": "حفظ",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "back": "رجوع",
+    "next": "التالي",
+    "previous": "السابق",
+    "new_collection": "مجموعة جديدة 2026",
+    "free_shipping": "شحن مجاني"
+  },
+
+  "navbar": {
+    "shop_all": "تصفح الكل",
+    "custom": "تخصيص",
+    "new_arrivals": "الوصول الجديد",
+    "about_us": "من نحن",
+    "my_profile": "ملفي الشخصي",
+    "wishlist": "قائمة الرغبات",
+    "admin_dashboard": "لوحة المسؤول",
+    "sign_out": "تسجيل الخروج",
+    "login_signup": "تسجيل الدخول / إنشاء حساب"
+  },
+
+  "home": {
+    "hero_main_line1": "عبر عن نفسك مع",
+    "hero_main_line2": "ملصقات ممتازة",
+    "hero_title": "ملصقات مخصصة مصنوعة بأسلوبك",
+    "hero_sub": "ملصقات عالية الجودة، مقاومة للماء والخدوش. صمّم ملصقك الخاص أو اختر من مجموعتنا.",
+    "hero_cta_shop": "تسوق الآن",
+    "hero_cta_custom": "إنشاء ملصق مخصص",
+    "hero_trust_1": "أكثر من 10 آلاف عميل سعيد",
+    "hero_trust_2": "أكثر من 500 تصميم ملصق",
+    "hero_trust_3": "تقييم 4.9",
+    "featured_title": "الملصقات المميزة",
+    "featured_sub": "التصاميم الشهيرة التي يحبها مجتمعنا",
+    "custom_orders_title": "حقق رؤيتك مع",
+    "custom_orders_highlight": "الطلبات المخصصة",
+    "custom_orders_desc": "ارفع تصميمك وسنتولى الباقي.",
+    "custom_orders_cta": "إنشاء ملصق مخصص",
+    "why_choose_us": "لماذا تختار Penguin Stick؟",
+    "feature_waterproof": "مقاوم للماء",
+    "feature_quality": "جودة عالية",
+    "feature_delivery": "توصيل سريع",
+    "feature_eco": "صديق للبيئة"
+  },
+
+  "shop": {
+    "all_stickers": "جميع الملصقات",
+    "filter_by_category": "تصفية حسب الفئة",
+    "filter_by_price": "تصفية حسب السعر",
+    "sort_by": "ترتيب حسب",
+    "newest": "الأحدث",
+    "best_selling": "الأكثر مبيعاً",
+    "no_products": "لم يتم العثور على منتجات",
+    "add_to_cart": "أضف إلى السلة"
+  },
+
+  "product": {
+    "details": "تفاصيل المنتج",
+    "price": "السعر",
+    "rating": "التقييم",
+    "reviews": "التقييمات",
+    "quantity": "الكمية",
+    "add_to_cart": "أضف إلى السلة",
+    "add_to_wishlist": "أضف إلى قائمة الرغبات",
+    "category": "الفئة",
+    "description": "الوصف",
+    "features": "المميزات",
+    "related_products": "منتجات ذات صلة",
+    "out_of_stock": "غير متوفر",
+    "waterproof": "مقاوم للماء",
+    "eco_friendly": "صديق للبيئة"
+  },
+
+  "cart": {
+    "title": "سلة التسوق",
+    "empty": "السلة فارغة",
+    "continue_shopping": "متابعة التسوق",
+    "subtotal": "المجموع الفرعي",
+    "shipping": "الشحن",
+    "total": "المجموع الكلي",
+    "checkout": "الذهاب للدفع",
+    "remove": "إزالة",
+    "quantity": "الكمية"
+  },
+
+  "checkout": {
+    "title": "الدفع",
+    "shipping_info": "معلومات الشحن",
+    "full_name": "الاسم الكامل",
+    "phone": "رقم الهاتف",
+    "address": "العنوان",
+    "governorate": "المحافظة",
+    "select_governorate": "اختر محافظة...",
+    "payment_method": "طريقة الدفع",
+    "cod": "الدفع عند الاستلام",
+    "cod_desc": "ادفع عند استلام الطلب",
+    "vodafone": "فودافون كاش",
+    "instapay": "إنستاباي",
+    "place_order": "تأكيد الطلب"
+  },
+
+  "custom_sticker": {
+    "title": "إنشاء ملصق مخصص",
+    "upload_image": "ارفع صورتك",
+    "drag_drop": "اسحب الصورة هنا أو اضغط للاختيار",
+    "sticker_name": "اسم الملصق",
+    "quantity": "الكمية",
+    "price_per": "7 جنيه لكل ملصق",
+    "total_estimate": "التقدير الإجمالي",
+    "add_to_cart": "أضف إلى السلة"
+  },
+
+  "auth": {
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "login": "دخول",
+    "signup": "إنشاء حساب",
+    "signin_with_google": "الدخول باستخدام Google"
+  },
+
+  "footer": {
+    "about": "عن Penguin Stick",
+    "contact": "اتصل بنا",
+    "phone": "الهاتف",
+    "email": "البريد الإلكتروني",
+    "instagram": "إنستجرام",
+    "facebook": "فيسبوك",
+    "copyright": "© 2024 Penguin Stick. جميع الحقوق محفوظة."
+  },
+
+  "messages": {
+    "added_to_cart": "تمت الإضافة إلى السلة!",
+    "removed_from_cart": "تمت الإزالة من السلة",
+    "profile_updated": "تم تحديث الملف الشخصي بنجاح!"
+  }
+}

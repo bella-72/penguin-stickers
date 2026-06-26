@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, Truck } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/Elements'
@@ -7,6 +8,7 @@ import { useCartStore } from '@/store/cartStore'
 import { formatPrice } from '@/utils/helpers'
 
 const Cart = () => {
+  const { t } = useTranslation()
   const { items, updateQuantity, removeItem, getSubtotal, getShipping, getTotal } = useCartStore()
   const subtotal = getSubtotal()
   const shipping = getShipping()
@@ -17,11 +19,11 @@ const Cart = () => {
       <div className="min-h-[70vh] flex items-center justify-center">
         <EmptyState
           icon={ShoppingBag}
-          title="Your cart is empty"
-          description="Looks like you haven't added any stickers yet. Start exploring our collection!"
+          title={t('cart.empty')}
+          description={t('cart.empty_message')}
           action={
             <Link to="/shop">
-              <Button iconRight={ArrowRight}>Browse Stickers</Button>
+              <Button iconRight={ArrowRight}>{t('cart.continue_shopping')}</Button>
             </Link>
           }
         />
@@ -37,7 +39,7 @@ const Cart = () => {
           animate={{ opacity: 1, y: 0 }}
           className="font-outfit text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-white mb-8"
         >
-          Your Cart
+          {t('cart.title')}
         </motion.h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -114,26 +116,26 @@ const Cart = () => {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card sticky top-28">
-              <h2 className="font-outfit text-xl font-semibold mb-6">Order Summary</h2>
+              <h2 className="font-outfit text-xl font-semibold mb-6">{t('cart.checkout')}</h2>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-brand-gray-600 dark:text-brand-gray-400">
-                  <span>Subtotal</span>
+                  <span>{t('cart.subtotal')}</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-brand-gray-600 dark:text-brand-gray-400">
-                  <span>Shipping</span>
-                  <span>{shipping === 0 ? 'Free' : formatPrice(shipping)}</span>
+                  <span>{t('cart.shipping')}</span>
+                  <span>{shipping === 0 ? t('common.free_shipping') : formatPrice(shipping)}</span>
                 </div>
                 <div className="border-t border-brand-gray-100 dark:border-brand-gray-700 pt-3 flex justify-between items-center">
-                  <span className="font-medium text-brand-gray-800 dark:text-white">Total</span>
+                  <span className="font-medium text-brand-gray-800 dark:text-white">{t('cart.total')}</span>
                   <span className="font-outfit text-2xl font-bold text-brand-primary">{formatPrice(total)}</span>
                 </div>
               </div>
 
               <Link to="/checkout" className="block mt-6">
                 <Button className="w-full" size="lg" iconRight={ArrowRight}>
-                  Proceed to Checkout
+                  {t('cart.checkout')}
                 </Button>
               </Link>
 
@@ -141,14 +143,14 @@ const Cart = () => {
                 Secure checkout by Penguin Stick SSL
               </p>
 
-              {subtotal < 300 && (
-                <div className="mt-4 p-3 rounded-xl bg-mint-50 dark:bg-mint-900/20 flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-brand-primary shrink-0" />
-                  <p className="text-xs text-brand-primary">
-                    Add {formatPrice(300 - subtotal)} more for free delivery!
-                  </p>
-                </div>
-              )}
+              {subtotal >= 500 && (
+  <div className="mt-4 p-3 rounded-xl bg-mint-50 dark:bg-mint-900/20 flex items-center gap-2">
+    <Truck className="w-4 h-4 text-brand-primary shrink-0" />
+    <p className="text-xs text-brand-primary">
+      {t('common.free_shipping')} {t('checkout.free_shipping')}!
+    </p>
+  </div>
+)}
             </div>
           </div>
         </div>

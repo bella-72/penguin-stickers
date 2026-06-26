@@ -17,16 +17,16 @@ const Footer = () => {
                   <polygon points="12,12 11,13.5 13,13.5" fill="#F39C12"/>
                 </svg>
               </div>
-              <span className="font-outfit font-bold text-xl text-brand-primary">Penguin Stick</span>
+              <span className="font-outfit font-bold text-xl text-brand-primary">Penguin</span>
             </Link>
             <p className="text-sm text-brand-gray-500 dark:text-brand-gray-400 leading-relaxed">
-              Premium custom die-cut stickers. Made with love for stationery enthusiasts. Waterproof, vinyl, eco-friendly.
+              Premium custom stickers designed for everyone. Express yourself with our high-quality, durable, and eco-friendly sticker collection.
             </p>
             <div className="flex gap-3">
-              <a href="https://www.instagram.com/penguin.stick/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-brand-gray-100 dark:bg-brand-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 text-brand-gray-500">
+              <a href="https://www.instagram.com/penguin.stick/" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-brand-gray-100 dark:bg-brand-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 text-brand-gray-500" title="Instagram">
                 <Instagram className="w-4 h-4" />
               </a>
-              <a href="https://www.facebook.com/profile.php?id=61583595386505&rdid=kzJqx3NPyebdYMwj&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1DxbzqNYRq%2F#" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-brand-gray-100 dark:bg-brand-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 text-brand-gray-500">
+              <a href="https://www.facebook.com/profile.php?id=61583595386505&rdid=kzJqx3NPyebdYMwj&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1DxbzqNYRq%2F#" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-brand-gray-100 dark:bg-brand-gray-800 flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all duration-300 text-brand-gray-500" title="Facebook">
                 <Facebook className="w-4 h-4" />
               </a>
             </div>
@@ -35,13 +35,13 @@ const Footer = () => {
           {/* Shop */}
           <div>
             <h4 className="font-outfit font-semibold text-sm uppercase tracking-wider text-brand-gray-800 dark:text-brand-gray-200 mb-4">
-              Shop
+              Quick Links
             </h4>
             <ul className="space-y-2.5">
-              {['All Stickers', 'New Arrivals', 'Best Sellers', 'Custom Stickers', 'Sale'].map((item) => (
+              {[{ label: 'All Stickers', link: '/shop' }, { label: 'New Arrivals', link: '/shop?filter=new' }, { label: 'Best Selling', link: '/shop' }, { label: 'Custom Sticker', link: '/custom-sticker' }, { label: 'Free Shipping', link: '/shop' }].map((item) => (
                 <li key={item}>
-                  <Link to="/shop" className="text-sm text-brand-gray-500 dark:text-brand-gray-400 hover:text-brand-primary transition-colors">
-                    {item}
+                  <Link to={item.link} className="text-sm text-brand-gray-500 dark:text-brand-gray-400 hover:text-brand-primary transition-colors">
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -78,7 +78,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-start gap-3 text-sm text-brand-gray-500 dark:text-brand-gray-400">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-                Cairo, Egypt
+                Egypt
               </li>
               <li className="flex items-start gap-3 text-sm text-brand-gray-500 dark:text-brand-gray-400">
                 <Phone className="w-4 h-4 mt-0.5 shrink-0" />
@@ -94,7 +94,7 @@ const Footer = () => {
 
         <div className="mt-12 pt-8 border-t border-brand-gray-100 dark:border-brand-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-brand-gray-400">
-            © 2026 Penguin Stick. Made with love for stationery enthusiasts.
+            © 2025 Penguin. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
             {['Privacy Policy', 'Terms of Service', 'Shipping & Returns', 'Contact Us', 'FAQ'].map((item) => (

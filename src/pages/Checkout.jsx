@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Banknote, Smartphone, CreditCard, CheckCircle2, ArrowRight } from 'lucide-react'
 import Button from '@/components/ui/Button'
@@ -9,18 +10,20 @@ import { useCartStore } from '@/store/cartStore'
 import { formatPrice, governorates } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 
-const paymentMethods = [
-  { id: 'cod', name: 'Cash on Delivery', icon: Banknote, desc: 'Pay when you receive' },
-  { id: 'vodafone', name: 'Vodafone Cash', icon: Smartphone, desc: 'Mobile wallet' },
-  { id: 'instapay', name: 'InstaPay', icon: CreditCard, desc: 'Bank transfer' },
-]
-
 const Checkout = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { items, getSubtotal, getShipping, getTotal, clearCart, setGovernorate, selectedGovernorate } = useCartStore()
   const [loading, setLoading] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cod')
+
+  const paymentMethods = [
+    { id: 'cod', name: t('checkout.cod'), icon: Banknote, desc: t('checkout.cod_desc') },
+    { id: 'vodafone', name: t('checkout.vodafone'), icon: Smartphone, desc: t('checkout.vodafone_desc') },
+    { id: 'instapay', name: t('checkout.instapay'), icon: CreditCard, desc: t('checkout.instapay_desc') },
+  ]
+
   const [form, setForm] = useState({
     fullName: '', phone: '', address: '', governorate: '', notes: ''
   })
@@ -312,7 +315,7 @@ const Checkout = () => {
                 </div>
                 <div className="border-t border-brand-gray-100 dark:border-brand-gray-700 pt-4 space-y-2 text-sm">
                   <div className="flex justify-between text-brand-gray-500"><span>Subtotal</span><span>{formatPrice(getSubtotal())}</span></div>
-                  <div className="flex justify-between text-brand-gray-500"><span>Shipping</span><span>{form.governorate ? formatPrice(getShipping()) : 'Select governorate'}</span></div>
+                  <div className="flex justify-between text-brand-gray-500"><span>Shipping</span><span>{form.governorate ? (getShipping() === 0 ? 'Free Shipping' : formatPrice(getShipping())) : 'Select governorate'}</span></div>
                   <div className="flex justify-between items-center pt-2 border-t border-brand-gray-100 dark:border-brand-gray-700">
                     <span className="font-medium">Total</span>
                     <span className="font-outfit text-2xl font-bold text-brand-primary">{form.governorate ? formatPrice(getTotal()) : '-'}</span>

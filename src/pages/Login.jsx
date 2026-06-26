@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import Button from '@/components/ui/Button'
@@ -9,6 +10,7 @@ import toast from 'react-hot-toast'
 import { authService } from '@/services/auth'
 
 const Login = () => {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { signIn } = useAuthStore()
   const [email, setEmail] = useState('')
@@ -29,7 +31,7 @@ const Login = () => {
 
     const { isAdmin } = await signIn(email, password)
 
-    toast.success('Welcome back! 🐧')
+    toast.success('Login successful')
 
     navigate(isAdmin ? '/admin' : '/')
 
@@ -50,7 +52,7 @@ const Login = () => {
       message.toLowerCase().includes('email not confirmed')
     ) {
 
-      toast.error('Please confirm your email first')
+      toast.error('Email not confirmed yet')
 
     } else if (
       message.toLowerCase().includes('user not found')
@@ -93,8 +95,8 @@ const Login = () => {
           <div className="mx-auto mb-8 flex items-center justify-center">
             <img src="/7665.png" alt="Penguin Stick" className="w-48 h-auto object-contain" />
           </div>
-          <h2 className="font-outfit text-4xl font-bold text-brand-primary mb-3">Collect Joy.</h2>
-          <p className="text-brand-gray-600 dark:text-brand-gray-400">Premium die-cut stickers for your notebooks, laptops, and life.</p>
+          <h2 className="font-outfit text-3xl font-bold text-brand-primary mb-3">Collect Joy</h2>
+          <p className="text-brand-gray-600 dark:text-brand-gray-400">Premium stickers for everyone</p>
           <p className="font-outfit font-bold text-brand-primary mt-8 text-lg">Penguin Stick</p>
         </div>
       </div>
@@ -103,10 +105,10 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
           <h1 className="font-outfit text-3xl font-bold text-brand-gray-900 dark:text-white mb-2">Welcome Back</h1>
-          <p className="text-brand-gray-500 mb-8">Sign in to your sticker studio account</p>
+          <p className="text-brand-gray-500 mb-8">Sign in to your account to continue</p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <Input label="Email Address" icon={Mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="hello@example.com" />
+            <Input label="Email" icon={Mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
             <div>
               <div className="flex justify-between items-center mb-1.5">
                 <label className="text-sm font-medium text-brand-gray-700 dark:text-brand-gray-300">Password</label>
@@ -127,12 +129,12 @@ const Login = () => {
               Stay logged in
             </label>
 
-            <Button type="submit" className="w-full" size="lg" loading={loading}>Login</Button>
+            <Button type="submit" className="w-full" size="lg" loading={loading}>Sign In</Button>
 
             {/* Debug: Test toast notification */}
             <button
               type="button"
-              onClick={() => toast.success('Toast is working ✅')}
+              onClick={() => toast.success('Test notification')}
               className="w-full py-2 text-xs text-brand-gray-400 hover:text-brand-gray-600 dark:hover:text-brand-gray-300 transition-colors"
             >
               Test Toast
@@ -141,7 +143,7 @@ const Login = () => {
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-brand-gray-200 dark:border-brand-gray-700" /></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-brand-light dark:bg-[#0f0f1a] px-4 text-brand-gray-400">or continue with</span></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="bg-brand-light dark:bg-[#0f0f1a] px-4 text-brand-gray-400">Or continue with</span></div>
           </div>
 
           <div className="flex justify-center">
@@ -155,13 +157,13 @@ const Login = () => {
   }}
   className="flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800 transition-colors text-sm font-medium"
 >
-  <span className="text-lg">G</span>
+  <span className="text-lg">{t('messages.google_signin')}</span>
   Google
 </button>
           </div>
 
           <p className="text-center text-sm text-brand-gray-500 mt-8">
-            Don't have an account? <Link to="/signup" className="text-brand-primary font-medium hover:underline">Sign up for free</Link>
+            {t('auth.no_account')} <Link to="/signup" className="text-brand-primary font-medium hover:underline">{t('auth.sign_up_free')}</Link>
           </p>
         </motion.div>
       </div>

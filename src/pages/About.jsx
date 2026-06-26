@@ -1,7 +1,10 @@
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { MapPin, Mail, Phone, Clock } from 'lucide-react'
 
-const About = () => (
+const About = () => {
+  const { t } = useTranslation()
+  return (
   <div className="min-h-screen">
     <div className="bg-gradient-to-br from-mint-50 to-brand-light dark:from-brand-dark dark:to-[#0f0f1a] py-20">
       <div className="max-w-4xl mx-auto px-4 text-center">
@@ -50,5 +53,6 @@ const About = () => (
     </div>
   </div>
 )
+}
 
 export default About

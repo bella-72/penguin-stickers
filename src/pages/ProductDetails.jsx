@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button'
 import { StarRating } from '@/components/ui/Elements'
 import ProductCard from '@/components/product/ProductCard'
 import { useCartStore } from '@/store/cartStore'
-import { demoProducts, demoReviews, formatPrice } from '@/utils/helpers'
+import { demoProducts, formatPrice } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 
 const ProductDetails = () => {
@@ -36,11 +36,9 @@ const ProductDetails = () => {
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center gap-2 text-sm text-brand-gray-400">
-          <Link to="/" className="hover:text-brand-primary">Home</Link>
-          <ChevronRight className="w-3 h-3" />
-          <Link to="/shop" className="hover:text-brand-primary">Shop</Link>
-          <ChevronRight className="w-3 h-3" />
-          <span className="text-brand-gray-700 dark:text-brand-gray-300">{product.name}</span>
+            <Link to="/" className="hover:text-brand-primary">Home</Link>
+            <ChevronRight className="w-3 h-3" />
+            <Link to="/shop" className="hover:text-brand-primary">Shop</Link>
         </div>
       </div>
 
@@ -60,7 +58,7 @@ const ProductDetails = () => {
             </div>
             <div className="flex items-center gap-4">
               <StarRating rating={product.rating} size="md" />
-              <span className="text-sm text-brand-gray-500">{product.rating} ({product.review_count} reviews)</span>
+              <span className="text-sm text-brand-gray-500">{product.rating} ({product.review_count})</span>
             </div>
             <div className="flex items-baseline gap-3">
               <span className="font-outfit text-3xl font-bold text-brand-primary">{formatPrice(product.price)}</span>
@@ -87,22 +85,6 @@ const ProductDetails = () => {
               ))}
             </div>
           </motion.div>
-        </div>
-
-        {/* Reviews */}
-        <div className="mt-16">
-          <h2 className="font-outfit text-2xl font-bold mb-6">Customer Reviews</h2>
-          <div className="space-y-4">
-            {demoReviews.map((r) => (
-              <div key={r.id} className="bg-white dark:bg-brand-dark rounded-2xl p-5 shadow-card">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-mint flex items-center justify-center text-white font-bold text-sm">{r.user_name[0]}</div>
-                  <div><p className="font-medium text-sm">{r.user_name}</p><StarRating rating={r.rating} size="xs" /></div>
-                </div>
-                <p className="text-sm text-brand-gray-600 dark:text-brand-gray-400">{r.comment}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="mt-12">

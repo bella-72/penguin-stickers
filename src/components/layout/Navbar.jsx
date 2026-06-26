@@ -6,13 +6,6 @@ import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
 
-const navLinks = [
-  { name: 'Shop All', path: '/shop' },
-  { name: 'Custom', path: '/custom' },
-  { name: 'New Arrivals', path: '/shop?filter=new' },
-  { name: 'About Us', path: '/about' },
-]
-
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -21,6 +14,13 @@ const Navbar = () => {
   const itemCount = useCartStore((s) => s.getItemCount())
   const { user, isAdmin, signOut } = useAuthStore()
   const { darkMode, toggleDarkMode, mobileMenuOpen, toggleMobileMenu, closeMobileMenu } = useUIStore()
+
+  const navLinks = [
+    { name: 'Shop All', path: '/shop' },
+    { name: 'Custom Sticker', path: '/custom' },
+    { name: 'New Arrivals', path: '/shop?filter=new' },
+    { name: 'About Us', path: '/about' },
+  ]
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -195,7 +195,7 @@ const Navbar = () => {
                   to="/login"
                   className="block px-4 py-3 rounded-xl text-base font-medium bg-gradient-mint text-white text-center mt-4"
                 >
-                  Login / Sign Up
+                  Sign In
                 </Link>
               )}
             </div>
