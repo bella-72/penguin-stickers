@@ -116,6 +116,7 @@ CREATE TABLE public.orders (
   governorate TEXT NOT NULL,
   notes TEXT,
   payment_method TEXT NOT NULL CHECK (payment_method IN ('cod', 'vodafone', 'instapay')),
+  payment_proof_url TEXT,
   subtotal DECIMAL(10,2) NOT NULL,
   shipping DECIMAL(10,2) DEFAULT 35,
   discount DECIMAL(10,2) DEFAULT 0,

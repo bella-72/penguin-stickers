@@ -7,8 +7,11 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Input'
 import { useCartStore } from '@/store/cartStore'
+import { ordersService } from '@/services/orders'
+import { storageService } from '@/services/api'
 import { formatPrice, governorates } from '@/utils/helpers'
 import toast from 'react-hot-toast'
+import { supabase } from '@/lib/supabase'
 
 const Checkout = () => {
   const { t } = useTranslation()
@@ -67,6 +70,23 @@ const Checkout = () => {
     }
   }
 
+  const uploadPaymentProof = async (file) => {
+    const extension = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const safeName = (file.name || 'payment-proof').replace(/[^a-zA-Z0-9.-]/g, '_')
+    const storagePath = `payment-proofs/${Date.now()}-${Math.random().toString(36).slice(2)}-${safeName}`
+
+    console.log('Uploading payment proof to Supabase Storage:', { bucket: 'payment-proofs', storagePath })
+
+    try {
+      const uploadedUrl = await storageService.uploadImage('payment-proofs', file, storagePath)
+      console.log('uploaded payment proof url:', uploadedUrl)
+      return uploadedUrl
+    } catch (error) {
+      console.error('Payment proof upload failed:', error)
+      throw error
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.fullName || !form.phone || !form.address) {
@@ -90,28 +110,65 @@ const Checkout = () => {
       }
     }
     
-    // Prepare order data
-    const orderData = {
-      customer: form,
-      items: items,
-      paymentMethod: paymentMethod,
-      paymentDetails: paymentMethod !== 'cod' ? {
-        transactionId: paymentDetails.transactionId,
-        screenshot: paymentDetails.screenshotPreview
-      } : null,
-      subtotal: getSubtotal(),
-      shipping: getShipping(),
-      total: getTotal(),
-      timestamp: new Date().toISOString()
-    }
-    
-    console.log('Order Data:', orderData)
-    
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1500))
-    clearCart()
-    setOrderPlaced(true)
-    setLoading(false)
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user?.id) {
+        toast.error('Please sign in before placing an order')
+        return
+      }
+
+      let paymentProofUrl = null
+
+      if ((paymentMethod === 'vodafone' || paymentMethod === 'instapay') && paymentDetails.screenshot) {
+        paymentProofUrl = await uploadPaymentProof(paymentDetails.screenshot)
+        console.log('uploaded payment proof url:', paymentProofUrl)
+      }
+
+      console.log('PAYMENT IMAGE URL BEFORE ORDER:', paymentProofUrl)
+
+      const orderPayload = {
+        user_id: user.id,
+        full_name: form.fullName,
+        phone: form.phone,
+        address: form.address,
+        governorate: form.governorate,
+        notes: form.notes || null,
+        payment_method: paymentMethod,
+        payment_proof_url: paymentProofUrl ?? null,
+        subtotal: getSubtotal(),
+        shipping: getShipping(),
+        total: getTotal(),
+        status: 'pending',
+        items: items.map(item => ({
+          product_id: item.product_id || item.id,
+          product_name: item.name,
+          product_image: item.image || null,
+          quantity: item.quantity,
+          price: item.price,
+          finish_type: item.finish_type || 'matte',
+        })),
+      }
+
+      console.log(orderPayload)
+
+      await ordersService.create(orderPayload)
+
+      console.log('Checkout order inserted successfully')
+
+      clearCart()
+      setOrderPlaced(true)
+    } catch (error) {
+      console.log('supabase error:', error)
+      console.log(error?.message)
+      console.log(error?.details)
+      console.log(error?.hint)
+      toast.error(error?.message || 'Failed to place order. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (orderPlaced) {

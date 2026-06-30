@@ -58,9 +58,16 @@ const AdminOrders = () => {
     if (!selectedOrder || !newStatus) return
 
     try {
-      await adminOrdersService.updateStatus(selectedOrder.id, newStatus)
-      toast.success('Order status updated!')
+      if (newStatus === 'cancelled') {
+        await adminOrdersService.deleteOrder(selectedOrder.id)
+        toast.success('Order cancelled and deleted successfully')
+      } else {
+        await adminOrdersService.updateStatus(selectedOrder.id, newStatus)
+        toast.success('Order status updated!')
+      }
+
       setShowModal(false)
+      setSelectedOrder(null)
       fetchOrders()
     } catch (err) {
       console.error('Error updating status:', err)
@@ -71,6 +78,8 @@ const AdminOrders = () => {
   const handleViewOrder = async (orderId) => {
     try {
       const order = await adminOrdersService.getById(orderId)
+      console.log(order.payment_proof_url)
+      console.log('resolved payment proof url:', getPaymentProofUrl(order))
       setSelectedOrder(order)
       setNewStatus(order.status)
       setShowModal(true)
@@ -86,6 +95,26 @@ const AdminOrders = () => {
     shipped: 'bg-purple-500/20 text-purple-400',
     delivered: 'bg-green-500/20 text-green-400',
     cancelled: 'bg-red-500/20 text-red-400',
+  }
+
+  const paymentMethodLabels = {
+    cod: 'Cash on Delivery',
+    vodafone: 'Vodafone Cash',
+    instapay: 'InstaPay',
+  }
+
+  const getPaymentProofUrl = (order) => {
+    const candidates = [
+      order?.payment_proof_url,
+      order?.payment_screenshot,
+      order?.screenshot_url,
+      order?.payment_image,
+      order?.payment_proof,
+      order?.payment_proofUrl,
+      order?.paymentProofUrl,
+    ]
+
+    return candidates.find((value) => typeof value === 'string' && value.trim()) || null
   }
 
   const totalPages = Math.ceil(total / limit)
@@ -132,6 +161,8 @@ const AdminOrders = () => {
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Order ID</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold">Customer</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold hidden md:table-cell">Email</th>
+                <th className="px-6 py-4 text-left text-sm font-semibold hidden lg:table-cell">Payment</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold hidden md:table-cell">Total</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold hidden lg:table-cell">Status</th>
                 <th className="px-6 py-4 text-left text-sm font-semibold hidden sm:table-cell">Date</th>
@@ -152,44 +183,59 @@ const AdminOrders = () => {
                   </td>
                 </tr>
               ) : (
-                orders.map((order, i) => (
-                  <motion.tr
-                    key={order.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="border-b border-white/5 hover:bg-white/5 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <span className="font-mono text-sm">{order.id.slice(0, 8).toUpperCase()}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-medium text-sm">{order.full_name}</p>
-                        <p className="text-xs text-gray-400">{order.phone}</p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 hidden md:table-cell">
-                      <span className="font-semibold">{formatPrice(order.total)}</span>
-                    </td>
-                    <td className="px-6 py-4 hidden lg:table-cell">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 hidden sm:table-cell text-sm text-gray-400">
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleViewOrder(order.id)}
-                        className="text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-1"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </motion.tr>
-                ))
+                orders.map((order, i) => {
+                  const customerName = order.users?.full_name || order.full_name
+                  const customerEmail = order.users?.email || ''
+                  const customerPhone = order.users?.phone || order.phone
+
+                  return (
+                    <motion.tr
+                      key={order.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: i * 0.05 }}
+                      className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-sm">{order.id.slice(0, 8).toUpperCase()}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => handleViewOrder(order.id)}
+                          className="text-left hover:text-blue-300 transition-colors"
+                        >
+                          <p className="font-medium text-sm">{customerName}</p>
+                          <p className="text-xs text-gray-400">{customerPhone}</p>
+                        </button>
+                      </td>
+                      <td className="px-6 py-4 hidden md:table-cell text-sm text-gray-300">
+                        {customerEmail || '—'}
+                      </td>
+                      <td className="px-6 py-4 hidden lg:table-cell text-sm text-gray-300">
+                        {paymentMethodLabels[order.payment_method] || order.payment_method || '—'}
+                      </td>
+                      <td className="px-6 py-4 hidden md:table-cell">
+                        <span className="font-semibold">{formatPrice(order.total)}</span>
+                      </td>
+                      <td className="px-6 py-4 hidden lg:table-cell">
+                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${statusColors[order.status]}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 hidden sm:table-cell text-sm text-gray-400">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleViewOrder(order.id)}
+                          className="text-blue-400 hover:text-blue-300 transition-colors inline-flex items-center gap-1"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </motion.tr>
+                  )
+                })
               )}
             </tbody>
           </table>
@@ -231,22 +277,26 @@ const AdminOrders = () => {
           >
             <h2 className="text-2xl font-bold mb-6">Order Details</h2>
 
-            <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <p className="text-gray-400 text-sm">Customer Name</p>
-                <p className="font-semibold">{selectedOrder.full_name}</p>
+                <p className="font-semibold">{selectedOrder.users?.full_name || selectedOrder.full_name}</p>
+              </div>
+              <div>
+                <p className="text-gray-400 text-sm">Email</p>
+                <p className="font-semibold">{selectedOrder.users?.email || '—'}</p>
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Phone</p>
-                <p className="font-semibold">{selectedOrder.phone}</p>
+                <p className="font-semibold">{selectedOrder.users?.phone || selectedOrder.phone}</p>
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Address</p>
-                <p className="font-semibold text-sm">{selectedOrder.address}</p>
+                <p className="text-gray-400 text-sm">Payment Method</p>
+                <p className="font-semibold">{paymentMethodLabels[selectedOrder.payment_method] || selectedOrder.payment_method || '—'}</p>
               </div>
               <div>
-                <p className="text-gray-400 text-sm">Governorate</p>
-                <p className="font-semibold">{selectedOrder.governorate}</p>
+                <p className="text-gray-400 text-sm">Shipping Address</p>
+                <p className="font-semibold text-sm">{selectedOrder.address}, {selectedOrder.governorate}</p>
               </div>
               <div>
                 <p className="text-gray-400 text-sm">Total Amount</p>
@@ -258,20 +308,56 @@ const AdminOrders = () => {
                   {selectedOrder.status}
                 </p>
               </div>
+              <div>
+                <p className="text-gray-400 text-sm">Notes</p>
+                <p className="font-semibold text-sm">{selectedOrder.notes || '—'}</p>
+              </div>
             </div>
 
             {/* Products Ordered */}
             <div className="mb-6">
               <h3 className="font-semibold mb-3">Products Ordered</h3>
-              <div className="space-y-2 bg-white/5 rounded-lg p-4">
+              <div className="space-y-3 bg-white/5 rounded-lg p-4">
                 {selectedOrder.order_items?.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-sm">
-                    <span>{item.product_name} (x{item.quantity})</span>
-                    <span>{formatPrice(item.price)}</span>
+                  <div key={item.id} className="flex items-center gap-3 rounded-lg bg-white/5 p-3">
+                    <img
+                      src={item.product_image || item.products?.image || 'https://ui-avatars.com/api/?name=Product&size=80'}
+                      alt={item.product_name}
+                      className="w-14 h-14 rounded-lg object-cover"
+                      onError={(e) => {
+                        e.target.src = 'https://ui-avatars.com/api/?name=Product&size=80'
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm">{item.product_name}</p>
+                      <p className="text-xs text-gray-400">Qty: {item.quantity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-sm">{formatPrice(item.price)}</p>
+                      <p className="text-xs text-gray-400">{formatPrice(Number(item.price) * Number(item.quantity))}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
+
+            {(selectedOrder.payment_method === 'vodafone' || selectedOrder.payment_method === 'instapay') && (
+              <div className="mb-6">
+                <h3 className="font-semibold mb-3">Payment Proof</h3>
+                <div className="rounded-lg bg-white/5 p-4">
+                  {(() => {
+                    const proof = getPaymentProofUrl(selectedOrder)
+                    return proof ? (
+                      <a href={proof} target="_blank" rel="noreferrer">
+                        <img src={proof} alt="Payment proof" className="max-h-64 rounded-lg object-contain cursor-pointer" />
+                      </a>
+                    ) : (
+                      <p className="text-sm text-gray-400">No payment proof uploaded yet.</p>
+                    )
+                  })()}
+                </div>
+              </div>
+            )}
 
             {/* Status Update */}
             <div className="mb-6">

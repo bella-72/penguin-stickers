@@ -29,6 +29,7 @@ export const useCartStore = create(
           return {
             items: [...state.items, {
               id: product.id,
+              product_id: product.id,
               name: product.name,
               price: product.price,
               image: product.images?.[0] || product.image || '',

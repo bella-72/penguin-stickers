@@ -121,9 +121,32 @@ export const wishlistService = {
 
 export const storageService = {
   async uploadImage(bucket, file, path) {
-    const { data, error } = await supabase.storage.from(bucket).upload(path, file)
-    if (error) throw error
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(data.path)
-    return publicUrl
+    const { data, error } = await supabase.storage.from(bucket).upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || 'application/octet-stream',
+    })
+
+    if (error) {
+      console.error('Storage upload failed:', error)
+      throw error
+    }
+
+    if (!data?.path) {
+      throw new Error('Storage upload completed without a returned file path')
+    }
+
+    const { data: publicData, error: publicUrlError } = supabase.storage.from(bucket).getPublicUrl(data.path)
+
+    if (publicUrlError) {
+      console.error('Failed to get public URL:', publicUrlError)
+      throw publicUrlError
+    }
+
+    if (!publicData?.publicUrl) {
+      throw new Error('Storage upload completed but no public URL was returned')
+    }
+
+    return publicData.publicUrl
   }
 }

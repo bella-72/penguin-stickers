@@ -12,6 +12,7 @@ const AdminDashboard = () => {
   const [monthlyData, setMonthlyData] = useState([])
   const [recentOrders, setRecentOrders] = useState([])
   const [topProducts, setTopProducts] = useState([])
+  const [statusCounts, setStatusCounts] = useState({ pending: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -20,17 +21,19 @@ const AdminDashboard = () => {
       setLoading(true)
       setError(null)
 
-      const [dashStats, monthly, recent, topProducts] = await Promise.all([
+      const [dashStats, monthly, recent, topProducts, orderStats] = await Promise.all([
         adminAnalyticsService.getDashboardStats(),
         adminAnalyticsService.getMonthlyRevenue(6),
         adminAnalyticsService.getRecentOrders(5),
         adminAnalyticsService.getTopSellingProducts(5),
+        adminOrdersService.getStats(),
       ])
 
       setStats(dashStats)
       setMonthlyData(monthly)
       setRecentOrders(recent)
       setTopProducts(topProducts)
+      setStatusCounts(orderStats?.statusCounts || { pending: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 })
     } catch (err) {
       console.error('Dashboard error:', err)
       setError(err.message)
@@ -68,7 +71,7 @@ const AdminDashboard = () => {
     {
       label: 'Total Revenue',
       value: stats?.totalRevenue ? `${formatPrice(stats.totalRevenue)}` : '0 EGP',
-      change: '+12.5%',
+      change: stats?.completionRate ? `${stats.completionRate}% delivered` : '0% delivered',
       icon: DollarSign,
       color: 'from-green-500 to-emerald-600',
       bgColor: 'bg-green-500/10',
@@ -76,7 +79,7 @@ const AdminDashboard = () => {
     {
       label: 'Total Orders',
       value: stats?.totalOrders || '0',
-      change: `+${Math.floor(Math.random() * 15)}%`,
+      change: `${statusCounts.delivered || 0} delivered`,
       icon: ShoppingBag,
       color: 'from-blue-500 to-cyan-600',
       bgColor: 'bg-blue-500/10',
@@ -84,7 +87,7 @@ const AdminDashboard = () => {
     {
       label: 'Total Products',
       value: stats?.totalProducts || '0',
-      change: '+3 new',
+      change: `${topProducts.length || 0} top sellers`,
       icon: Package,
       color: 'from-purple-500 to-violet-600',
       bgColor: 'bg-purple-500/10',
@@ -92,7 +95,7 @@ const AdminDashboard = () => {
     {
       label: 'Total Customers',
       value: stats?.totalCustomers || '0',
-      change: `+${Math.floor(Math.random() * 20)}%`,
+      change: `${statusCounts.pending || 0} pending`,
       icon: Users,
       color: 'from-orange-500 to-amber-600',
       bgColor: 'bg-orange-500/10',
@@ -194,42 +197,22 @@ const AdminDashboard = () => {
             Order Status
           </h3>
           <div className="space-y-3">
-            <div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-gray-400">Pending</span>
-                <span className="font-semibold">0</span>
+            {[
+              { label: 'Pending', value: statusCounts.pending, color: 'bg-yellow-500', width: stats?.totalOrders ? `${(statusCounts.pending / stats.totalOrders) * 100}%` : '0%' },
+              { label: 'Processing', value: statusCounts.processing, color: 'bg-blue-500', width: stats?.totalOrders ? `${(statusCounts.processing / stats.totalOrders) * 100}%` : '0%' },
+              { label: 'Shipped', value: statusCounts.shipped, color: 'bg-purple-500', width: stats?.totalOrders ? `${(statusCounts.shipped / stats.totalOrders) * 100}%` : '0%' },
+              { label: 'Delivered', value: statusCounts.delivered, color: 'bg-green-500', width: stats?.totalOrders ? `${(statusCounts.delivered / stats.totalOrders) * 100}%` : '0%' },
+            ].map((item) => (
+              <div key={item.label}>
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-gray-400">{item.label}</span>
+                  <span className={`font-semibold ${item.label === 'Delivered' ? 'text-green-400' : ''}`}>{item.value}</span>
+                </div>
+                <div className="w-full bg-white/5 rounded-full h-2">
+                  <div className={`${item.color} h-2 rounded-full`} style={{ width: item.width }} />
+                </div>
               </div>
-              <div className="w-full bg-white/5 rounded-full h-2">
-                <div className="bg-yellow-500 h-2 rounded-full w-0" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-gray-400">Processing</span>
-                <span className="font-semibold">0</span>
-              </div>
-              <div className="w-full bg-white/5 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full w-0" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-gray-400">Shipped</span>
-                <span className="font-semibold">0</span>
-              </div>
-              <div className="w-full bg-white/5 rounded-full h-2">
-                <div className="bg-purple-500 h-2 rounded-full w-0" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between text-sm mb-2">
-                <span className="text-gray-400">Delivered</span>
-                <span className="font-semibold text-green-400">{stats?.totalOrders || 0}</span>
-              </div>
-              <div className="w-full bg-white/5 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }} />
-              </div>
-            </div>
+            ))}
           </div>
         </motion.div>
       </div>

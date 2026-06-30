@@ -1,28 +1,41 @@
 import { supabase } from '@/lib/supabase'
+import { ordersService } from '@/services/orders'
 
 /**
  * Admin Orders Service
  * Handles all admin order operations with real-time capabilities
  */
+const paymentProofColumnCandidates = [
+  'payment_proof_url',
+  'payment_screenshot',
+  'screenshot_url',
+  'payment_image',
+  'payment_proof',
+  'payment_proofUrl',
+  'paymentProofUrl',
+]
+
 export const adminOrdersService = {
   async getAll({ status, page = 1, limit = 10, search = '' } = {}) {
+    const baseSelect = `
+      id,
+      user_id,
+      full_name,
+      phone,
+      address,
+      governorate,
+      total,
+      status,
+      created_at,
+      payment_method,
+      payment_proof_url,
+      notes,
+      users!user_id(full_name, phone, address, governorate)
+    `
+
     let query = supabase
       .from('orders')
-      .select(
-        `
-        id, 
-        full_name, 
-        phone, 
-        address, 
-        governorate, 
-        total, 
-        status, 
-        created_at,
-        user_id,
-        users(full_name, email)
-        `,
-        { count: 'exact' }
-      )
+      .select(baseSelect, { count: 'exact' })
 
     if (status && status !== 'all') {
       query = query.eq('status', status)
@@ -38,8 +51,38 @@ export const adminOrdersService = {
     query = query.range(from, from + limit - 1)
 
     const { data, error, count } = await query
-    if (error) throw error
-    return { orders: data, total: count }
+    if (!error) {
+      return { orders: data || [], total: count || 0 }
+    }
+
+    console.log(error.message)
+    console.log(error.details)
+    console.log(error.hint)
+
+    const fallbackQuery = supabase
+      .from('orders')
+      .select('id, user_id, full_name, phone, address, governorate, total, status, created_at, payment_method, payment_proof_url, notes', { count: 'exact' })
+
+    if (status && status !== 'all') {
+      fallbackQuery.eq('status', status)
+    }
+
+    if (search) {
+      fallbackQuery.or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`)
+    }
+
+    const { data: fallbackData, error: fallbackError, count: fallbackCount } = await fallbackQuery
+      .order('created_at', { ascending: false })
+      .range((page - 1) * limit, (page - 1) * limit + limit - 1)
+
+    if (fallbackError) {
+      console.log(fallbackError.message)
+      console.log(fallbackError.details)
+      console.log(fallbackError.hint)
+      return { orders: [], total: 0 }
+    }
+
+    return { orders: fallbackData || [], total: fallbackCount || 0 }
   },
 
   async getById(orderId) {
@@ -47,7 +90,19 @@ export const adminOrdersService = {
       .from('orders')
       .select(
         `
-        *,
+        id,
+        user_id,
+        full_name,
+        phone,
+        address,
+        governorate,
+        total,
+        status,
+        created_at,
+        payment_method,
+        payment_proof_url,
+        notes,
+        users!user_id(full_name, phone, address, governorate),
         order_items(
           id,
           product_id,
@@ -56,14 +111,47 @@ export const adminOrdersService = {
           quantity,
           price,
           finish_type
-        ),
-        users(full_name, email, phone, address, governorate)
+        )
         `
       )
       .eq('id', orderId)
       .single()
-    if (error) throw error
-    return data
+
+    if (!error) {
+      return data
+    }
+
+    console.log(error.message)
+    console.log(error.details)
+    console.log(error.hint)
+
+    const [{ data: orderData, error: orderError }, { data: orderItemsData, error: orderItemsError }] = await Promise.all([
+      supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single(),
+      supabase
+        .from('order_items')
+        .select('id, product_id, product_name, product_image, quantity, price, finish_type')
+        .eq('order_id', orderId)
+    ])
+
+    if (orderError || orderItemsError) {
+      console.log(orderError?.message)
+      console.log(orderError?.details)
+      console.log(orderError?.hint)
+      console.log(orderItemsError?.message)
+      console.log(orderItemsError?.details)
+      console.log(orderItemsError?.hint)
+      return null
+    }
+
+    return {
+      ...orderData,
+      order_items: orderItemsData || [],
+      users: null,
+    }
   },
 
   async updateStatus(orderId, status) {
@@ -75,6 +163,10 @@ export const adminOrdersService = {
       .single()
     if (error) throw error
     return data
+  },
+
+  async deleteOrder(orderId) {
+    return ordersService.deleteOrder(orderId)
   },
 
   async getStats() {
