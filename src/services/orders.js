@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase'
 
 export const ordersService = {
-  async deleteOrder(orderId) {
+  async deleteOrder(orderId, userId = null) {
     const { error: itemsError } = await supabase
       .from('order_items')
       .delete()
@@ -9,10 +9,16 @@ export const ordersService = {
 
     if (itemsError) throw itemsError
 
-    const { error: orderError } = await supabase
+    let orderQuery = supabase
       .from('orders')
       .delete()
       .eq('id', orderId)
+
+    if (userId) {
+      orderQuery = orderQuery.eq('user_id', userId)
+    }
+
+    const { error: orderError } = await orderQuery
 
     if (orderError) throw orderError
 

@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Heart, ShoppingCart, Star } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
+import { wishlistService } from '@/services/api'
 import { formatPrice } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 
@@ -10,6 +12,7 @@ const ProductCard = ({ product, index = 0 }) => {
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
   const addItem = useCartStore((s) => s.addItem)
+  const user = useAuthStore((s) => s.user)
 
   const handleAddToCart = (e) => {
     e.preventDefault()
@@ -26,14 +29,43 @@ const ProductCard = ({ product, index = 0 }) => {
     })
   }
 
-  const handleWishlist = (e) => {
+  useEffect(() => {
+    const syncWishlistState = async () => {
+      if (!user?.id || !product?.id) return
+      try {
+        const exists = await wishlistService.check(user.id, product.id)
+        setIsWishlisted(exists)
+      } catch (error) {
+        console.error('Failed to sync wishlist state:', error)
+      }
+    }
+
+    syncWishlistState()
+  }, [user?.id, product?.id])
+
+  const handleWishlist = async (e) => {
     e.preventDefault()
     e.stopPropagation()
-    setIsWishlisted(!isWishlisted)
-    toast.success(isWishlisted ? 'Removed from wishlist' : 'Added to wishlist', {
-      icon: isWishlisted ? '💔' : '❤️',
-      style: { borderRadius: '12px' },
-    })
+
+    if (!user?.id) {
+      toast.error('Please sign in to save wishlist items')
+      return
+    }
+
+    try {
+      if (isWishlisted) {
+        await wishlistService.remove(user.id, product.id)
+        setIsWishlisted(false)
+        toast.success('Removed from wishlist', { icon: '💔', style: { borderRadius: '12px' } })
+      } else {
+        await wishlistService.add(user.id, product.id)
+        setIsWishlisted(true)
+        toast.success('Added to wishlist', { icon: '❤️', style: { borderRadius: '12px' } })
+      }
+    } catch (error) {
+      console.error('Wishlist toggle failed:', error)
+      toast.error('Wishlist update failed')
+    }
   }
 
   const imageUrl = product.images?.[0] || product.image || '/stickers/placeholder.webp'
