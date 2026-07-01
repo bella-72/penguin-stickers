@@ -6,7 +6,8 @@ import Button from '@/components/ui/Button'
 import { StarRating } from '@/components/ui/Elements'
 import ProductCard from '@/components/product/ProductCard'
 import { useCartStore } from '@/store/cartStore'
-import { demoProducts, formatPrice } from '@/utils/helpers'
+import { productsService } from '@/services/products'
+import { formatPrice } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 
 const ProductDetails = () => {
@@ -15,17 +16,34 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('description')
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [relatedProducts, setRelatedProducts] = useState([])
   const addItem = useCartStore((s) => s.addItem)
 
   useEffect(() => {
-    const found = demoProducts.find(p => p.slug === slug || p.id === slug)
-    setProduct(found || demoProducts[0])
-    window.scrollTo(0, 0)
+    const loadProduct = async () => {
+      try {
+        const found = slug ? await productsService.getBySlug(slug) : null
+        if (found) {
+          setProduct(found)
+          const related = await productsService.getRelated(found.category_id, found.id)
+          setRelatedProducts(related || [])
+        } else {
+          setProduct(null)
+          setRelatedProducts([])
+        }
+      } catch (error) {
+        console.error('Failed to load product details:', error)
+        setProduct(null)
+        setRelatedProducts([])
+      } finally {
+        window.scrollTo(0, 0)
+      }
+    }
+
+    loadProduct()
   }, [slug])
 
   if (!product) return null
-
-  const relatedProducts = demoProducts.filter(p => p.id !== product.id).slice(0, 4)
 
   const handleAddToCart = () => {
     addItem(product, quantity)

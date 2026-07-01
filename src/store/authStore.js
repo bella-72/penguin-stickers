@@ -1,68 +1,90 @@
 import { create } from 'zustand'
 import { authService } from '@/services/auth'
+import { supabase } from '@/lib/supabase'
+
+let authListenerInitialized = false
+
+const syncAuthState = async (set, session) => {
+  const user = session?.user ?? null
+
+  if (!user) {
+    set({ user: null, profile: null, isAdmin: false, loading: false, isAuthLoading: false })
+    return
+  }
+
+  try {
+    const profile = await authService.getUserProfile(user.id)
+    const isAdmin = profile?.role === 'admin'
+    set({ user, profile, isAdmin, loading: false, isAuthLoading: false })
+  } catch {
+    set({ user, profile: null, isAdmin: false, loading: false, isAuthLoading: false })
+  }
+}
 
 export const useAuthStore = create((set, get) => ({
   user: null,
   profile: null,
   isAdmin: false,
   loading: true,
+  isAuthLoading: true,
 
   initialize: async () => {
+    if (authListenerInitialized) {
+      const session = await authService.getSession()
+      await syncAuthState(set, session)
+      return
+    }
+
+    authListenerInitialized = true
+
     try {
       const session = await authService.getSession()
-      if (session?.user) {
-        const profile = await authService.getUserProfile(session.user.id).catch(() => null)
-        const isAdmin = profile?.role === 'admin'
-        set({ user: session.user, profile, isAdmin, loading: false })
-      } else {
-        set({ user: null, profile: null, isAdmin: false, loading: false })
-      }
+      await syncAuthState(set, session)
     } catch {
-      set({ loading: false })
+      set({ user: null, profile: null, isAdmin: false, loading: false, isAuthLoading: false })
     }
+
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      await syncAuthState(set, session)
+    })
   },
 
   signIn: async (email, password) => {
-  try {
+    try {
+      const { user } = await authService.signIn(email, password)
+      const profile = await authService.getUserProfile(user.id)
+      const isAdmin = profile?.role === 'admin'
 
-    const { user } = await authService.signIn(email, password)
+      set({
+        user,
+        profile,
+        isAdmin,
+        loading: false,
+        isAuthLoading: false,
+      })
 
-    const profile =
-      await authService.getUserProfile(user.id).catch(() => null)
-
-    const isAdmin =
-      profile?.role === 'admin'
-
-    set({
-      user,
-      profile,
-      isAdmin
-    })
-
-    return {
-      user,
-      profile,
-      isAdmin
+      return {
+        user,
+        profile,
+        isAdmin,
+      }
+    } catch (error) {
+      console.error('STORE LOGIN ERROR:', error)
+      throw error
     }
-
-  } catch (error) {
-
-    console.log("STORE LOGIN ERROR:", error)
-
-    throw error
-
-  }
-},
+  },
 
   signUp: async (email, password, fullName) => {
     const { user } = await authService.signUp(email, password, fullName)
-    set({ user, profile: { full_name: fullName, role: 'customer' }, isAdmin: false })
+    const profile = await authService.getUserProfile(user?.id)
+    const isAdmin = profile?.role === 'admin'
+    set({ user, profile, isAdmin, loading: false, isAuthLoading: false })
     return user
   },
 
   signOut: async () => {
     await authService.signOut()
-    set({ user: null, profile: null, isAdmin: false })
+    set({ user: null, profile: null, isAdmin: false, loading: false, isAuthLoading: false })
   },
 
   updateProfile: async (updates) => {

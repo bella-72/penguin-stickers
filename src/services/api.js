@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase'
+import { normalizeProductId } from '@/utils/helpers'
+import { productsService } from '@/services/products'
 
 export const categoriesService = {
   async getAll() {
@@ -96,21 +98,29 @@ export const wishlistService = {
   async get(userId) {
     const { data, error } = await supabase
       .from('wishlist')
-      .select('*, products(*, categories(name))')
+      .select('id, product_id, products(id, name, price, images, image, category_id, categories(name))')
       .eq('user_id', userId)
+      .order('id', { ascending: false })
 
     if (error) throw error
-    return data
+    return data || []
   },
 
 
   async add(userId, productId) {
+    const normalizedProductId = normalizeProductId(productId)
+    if (!userId || !normalizedProductId) return null
+
+    await productsService.ensureDemoProduct(normalizedProductId)
+
+    const existing = await this.check(userId, normalizedProductId)
+    if (existing) return { alreadyExists: true }
 
     const { data, error } = await supabase
       .from('wishlist')
       .insert({
         user_id: userId,
-        product_id: Number(productId)
+        product_id: normalizedProductId
       })
       .select()
 
@@ -121,32 +131,33 @@ export const wishlistService = {
 
 
   async remove(userId, productId) {
+    const normalizedProductId = normalizeProductId(productId)
+    if (!userId || !normalizedProductId) return
 
     const { error } = await supabase
       .from('wishlist')
       .delete()
       .eq('user_id', userId)
-      .eq('product_id', Number(productId))
-
+      .eq('product_id', normalizedProductId)
 
     if (error) throw error
   },
 
 
   async check(userId, productId) {
+    const normalizedProductId = normalizeProductId(productId)
+    if (!userId || !normalizedProductId) return false
 
     const { data, error } = await supabase
       .from('wishlist')
       .select('id')
       .eq('user_id', userId)
-      .eq('product_id', Number(productId))
+      .eq('product_id', normalizedProductId)
       .maybeSingle()
-
 
     if (error && error.code !== 'PGRST116') {
       throw error
     }
-
 
     return !!data
   }

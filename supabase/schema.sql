@@ -57,6 +57,7 @@ CREATE TABLE public.products (
   price DECIMAL(10,2) NOT NULL,
   original_price DECIMAL(10,2),
   category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+  image TEXT,
   images TEXT[] DEFAULT '{}',
   finish_types TEXT[] DEFAULT '{"matte","glossy","holographic"}',
   stock INTEGER DEFAULT 0,
@@ -129,6 +130,7 @@ CREATE TABLE public.orders (
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can create orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can delete own orders" ON public.orders FOR DELETE TO authenticated USING (auth.uid() = user_id);
 CREATE POLICY "Admins can manage all orders" ON public.orders FOR ALL USING (
   EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
 );
@@ -154,6 +156,7 @@ CREATE POLICY "Users can view own order items" ON public.order_items FOR SELECT 
 CREATE POLICY "Users can create order items" ON public.order_items FOR INSERT WITH CHECK (
   EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid())
 );
+CREATE POLICY "Users can delete order items" ON public.order_items FOR DELETE TO authenticated USING (true);
 CREATE POLICY "Admins can manage all order items" ON public.order_items FOR ALL USING (
   EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
 );

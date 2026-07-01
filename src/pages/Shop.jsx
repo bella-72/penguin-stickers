@@ -1,10 +1,12 @@
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, SlidersHorizontal, Grid3X3, LayoutList } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { ProductCardSkeleton } from '@/components/ui/Skeleton'
-import { demoProducts, demoCategories } from '@/utils/helpers'
+import { productsService } from '@/services/products'
+import { categoriesService } from '@/services/api'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 
 const Shop = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -13,32 +15,77 @@ const Shop = () => {
   const [sortBy, setSortBy] = useState('newest')
   const [viewMode, setViewMode] = useState('grid')
   const [showFilters, setShowFilters] = useState(false)
+  const [products, setProducts] = useState([])
+  const [categories, setCategories] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
 
   const isNew = searchParams.get('filter') === 'new'
 
-  const filteredProducts = useMemo(() => {
-    let products = [...demoProducts]
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true)
+      const response = await productsService.getAll({
+        category: selectedCategory === 'all' ? undefined : selectedCategory,
+        search: searchQuery || undefined,
+        sort: sortBy === 'newest' ? undefined : sortBy,
+      })
+      setProducts(response.products || [])
+    } catch (error) {
+      console.error('Failed to load shop products:', error)
+      setProducts([])
+    } finally {
+      setLoading(false)
+    }
+  }, [selectedCategory, searchQuery, sortBy])
 
-    if (isNew) products = products.filter(p => p.is_new)
+  const loadCategories = useCallback(async () => {
+    try {
+      setCategoriesLoading(true)
+      const data = await categoriesService.getAll()
+      setCategories(data || [])
+    } catch (error) {
+      console.error('Failed to load shop categories:', error)
+      setCategories([])
+    } finally {
+      setCategoriesLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadProducts()
+  }, [loadProducts])
+
+  useEffect(() => {
+    loadCategories()
+  }, [loadCategories])
+
+  useAutoRefresh(loadProducts, 5000)
+  useAutoRefresh(loadCategories, 5000)
+
+  const filteredProducts = useMemo(() => {
+    let productsToRender = [...products]
+
+    if (isNew) productsToRender = productsToRender.filter(p => p.is_new)
     if (selectedCategory !== 'all') {
-      products = products.filter(p => p.categories?.slug === selectedCategory)
+      productsToRender = productsToRender.filter(p => p.category_id === selectedCategory)
     }
     if (searchQuery) {
-      products = products.filter(p =>
+      productsToRender = productsToRender.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.description?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 
     switch (sortBy) {
-      case 'price_asc': products.sort((a, b) => a.price - b.price); break
-      case 'price_desc': products.sort((a, b) => b.price - a.price); break
-      case 'rating': products.sort((a, b) => b.rating - a.rating); break
+      case 'price_asc': productsToRender.sort((a, b) => Number(a.price) - Number(b.price)); break
+      case 'price_desc': productsToRender.sort((a, b) => Number(b.price) - Number(a.price)); break
+      case 'rating': productsToRender.sort((a, b) => Number(b.rating || 0) - Number(a.rating || 0)); break
       default: break
     }
 
-    return products
-  }, [selectedCategory, searchQuery, sortBy, isNew])
+    return productsToRender
+  }, [products, selectedCategory, searchQuery, sortBy, isNew])
 
   return (
     <div className="min-h-screen">
@@ -126,17 +173,21 @@ const Shop = () => {
                 >
                   All Stickers
                 </button>
-                {demoCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => { setSelectedCategory(cat.slug); setShowFilters(false) }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
-                      selectedCategory === cat.slug ? 'bg-brand-primary/10 text-brand-primary font-medium' : 'text-brand-gray-600 dark:text-brand-gray-400 hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+                {categoriesLoading ? (
+                  <div className="px-3 py-2 text-sm text-brand-gray-500 dark:text-brand-gray-400">Loading categories...</div>
+                ) : (
+                  categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => { setSelectedCategory(cat.id); setShowFilters(false) }}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                        selectedCategory === cat.id ? 'bg-brand-primary/10 text-brand-primary font-medium' : 'text-brand-gray-600 dark:text-brand-gray-400 hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           </aside>
@@ -145,7 +196,17 @@ const Shop = () => {
           <div className="flex-1">
             <p className="text-sm text-brand-gray-400 mb-4">{filteredProducts.length} products</p>
 
-            {filteredProducts.length > 0 ? (
+            {loading ? (
+              <div className={`grid gap-5 ${
+                viewMode === 'grid'
+                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                  : 'grid-cols-1'
+              }`}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))}
+              </div>
+            ) : filteredProducts.length > 0 ? (
               <div className={`grid gap-5 ${
                 viewMode === 'grid'
                   ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'

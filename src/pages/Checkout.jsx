@@ -267,7 +267,7 @@ const Checkout = () => {
                     <div className="space-y-4">
                       <div className="p-4 bg-white dark:bg-brand-dark rounded-lg border border-brand-gray-200 dark:border-brand-gray-700">
                         <p className="text-xs text-brand-gray-500 mb-1">Vodafone Cash Number</p>
-                        <p className="font-mono text-lg font-semibold text-brand-primary">+20 109 123 4567</p>
+                        <p className="font-mono text-lg font-semibold text-brand-primary">+20 10 21602374</p>
                       </div>
                       <div className="p-3 bg-brand-primary/10 rounded-lg border border-brand-primary/20">
                         <p className="text-sm text-brand-gray-700 dark:text-brand-gray-300">
@@ -311,7 +311,7 @@ const Checkout = () => {
                     <div className="space-y-4">
                       <div className="p-4 bg-white dark:bg-brand-dark rounded-lg border border-brand-gray-200 dark:border-brand-gray-700">
                         <p className="text-xs text-brand-gray-500 mb-1">InstaPay Account Information</p>
-                        <p className="font-mono text-lg font-semibold text-brand-primary">+20 112 345 6789</p>
+                        <p className="font-mono text-lg font-semibold text-brand-primary">+20 1143608754</p>
                         <p className="text-xs text-brand-gray-400 mt-1">Account Holder: Penguin Stick Egypt</p>
                       </div>
                       <div className="p-3 bg-brand-primary/10 rounded-lg border border-brand-primary/20">

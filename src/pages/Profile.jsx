@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Package, Heart, Palette, Settings, LogOut } from 'lucide-react'
@@ -10,6 +10,7 @@ import { useCartStore } from '@/store/cartStore'
 import { formatPrice, formatDate, getStatusColor } from '@/utils/helpers'
 import { ordersService } from '@/services/orders'
 import { wishlistService } from '@/services/api'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import toast from 'react-hot-toast'
 
 const tabs = [
@@ -22,11 +23,12 @@ const tabs = [
 const Profile = () => {
   const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'orders')
-  const { user, profile, signOut, updateProfile } = useAuthStore()
+  const { user, profile, signOut, updateProfile, isAuthLoading } = useAuthStore()
   const navigate = useNavigate()
   const addItem = useCartStore((s) => s.addItem)
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
+  const [cancellingOrderId, setCancellingOrderId] = useState(null)
   const [wishlistItems, setWishlistItems] = useState([])
   const [wishlistLoading, setWishlistLoading] = useState(false)
   const [editForm, setEditForm] = useState({
@@ -37,51 +39,56 @@ const Profile = () => {
   })
 
   useEffect(() => {
+    if (isAuthLoading) return
+
     if (!user) {
       navigate('/login')
       return
     }
-  }, [user, navigate])
+  }, [user, isAuthLoading, navigate])
+
+  const fetchUserOrders = useCallback(async () => {
+    if (!user?.id || activeTab !== 'orders') return
+
+    setOrdersLoading(true)
+    try {
+      const userOrders = await ordersService.getByUser(user.id)
+      setOrders(userOrders || [])
+    } catch (error) {
+      console.error('Failed to load profile orders:', error)
+      toast.error('Failed to load your orders')
+      setOrders([])
+    } finally {
+      setOrdersLoading(false)
+    }
+  }, [activeTab, user?.id])
 
   useEffect(() => {
-    const fetchUserOrders = async () => {
-      if (!user?.id || activeTab !== 'orders') return
-
-      setOrdersLoading(true)
-      try {
-        const userOrders = await ordersService.getByUser(user.id)
-        setOrders(userOrders || [])
-      } catch (error) {
-        console.error('Failed to load profile orders:', error)
-        toast.error('Failed to load your orders')
-        setOrders([])
-      } finally {
-        setOrdersLoading(false)
-      }
-    }
-
     fetchUserOrders()
-  }, [user?.id, activeTab])
+  }, [fetchUserOrders])
+
+  const fetchWishlist = useCallback(async () => {
+    if (!user?.id || activeTab !== 'wishlist') return
+
+    setWishlistLoading(true)
+    try {
+      const items = await wishlistService.get(user.id)
+      setWishlistItems(items || [])
+    } catch (error) {
+      console.error('Failed to load wishlist:', error)
+      toast.error('Failed to load your wishlist')
+      setWishlistItems([])
+    } finally {
+      setWishlistLoading(false)
+    }
+  }, [activeTab, user?.id])
 
   useEffect(() => {
-    const fetchWishlist = async () => {
-      if (!user?.id || activeTab !== 'wishlist') return
-
-      setWishlistLoading(true)
-      try {
-        const items = await wishlistService.get(user.id)
-        setWishlistItems(items || [])
-      } catch (error) {
-        console.error('Failed to load wishlist:', error)
-        toast.error('Failed to load your wishlist')
-        setWishlistItems([])
-      } finally {
-        setWishlistLoading(false)
-      }
-    }
-
     fetchWishlist()
-  }, [user?.id, activeTab])
+  }, [fetchWishlist])
+
+  useAutoRefresh(fetchUserOrders, 5000)
+  useAutoRefresh(fetchWishlist, 5000)
 
   if (!user) return null
 
@@ -92,19 +99,30 @@ const Profile = () => {
     } catch { toast.error('Update failed') }
   }
 
-  const handleCancelOrder = async (orderId) => {
-    if (!user?.id) return
+  const handleCancelOrder = async (order) => {
+    if (!user?.id || !order?.id) return
 
     const confirmed = window.confirm('Cancel this order?')
     if (!confirmed) return
 
+    const previousOrders = [...orders]
+    setCancellingOrderId(order.id)
+
     try {
-      await ordersService.deleteOrder(orderId, user.id)
-      setOrders((prev) => prev.filter((order) => order.id !== orderId))
+      console.log('Deleting order:', order.id)
+
+      await ordersService.cancelOrder(order.id, user.id)
+
+      setOrders((prev) => prev.filter((item) => item.id !== order.id))
+      await fetchUserOrders()
+
       toast.success('Order cancelled successfully')
     } catch (error) {
+      setOrders(previousOrders)
       console.error('Failed to cancel order:', error)
-      toast.error('Failed to cancel order')
+      toast.error(error?.message || 'Failed to cancel order')
+    } finally {
+      setCancellingOrderId(null)
     }
   }
 
@@ -184,8 +202,12 @@ const Profile = () => {
                   <div className="flex flex-wrap items-center justify-between gap-2 mb-3 text-sm text-brand-gray-500 dark:text-brand-gray-400">
                     <span>Payment: {paymentMethodLabels[order.payment_method] || order.payment_method || '—'}</span>
                     {order.status === 'pending' && (
-                      <Button variant="ghost" onClick={() => handleCancelOrder(order.id)}>
-                        Cancel Order
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleCancelOrder(order)}
+                        disabled={cancellingOrderId === order.id}
+                      >
+                        {cancellingOrderId === order.id ? 'Cancelling...' : 'Cancel Order'}
                       </Button>
                     )}
                   </div>

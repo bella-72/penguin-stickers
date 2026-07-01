@@ -1,53 +1,100 @@
 import { supabase } from '@/lib/supabase'
 
+const normalizeError = (error) => {
+  if (!error) return new Error('Authentication failed')
+
+  if (typeof error === 'string') return new Error(error)
+  if (error.message) return error
+
+  return new Error('Authentication failed')
+}
+
+const ensureUserProfile = async (user, fullName = null) => {
+  if (!user?.id) return null
+
+  const { data: existingProfile, error: fetchError } = await supabase
+    .from('users')
+    .select('id, full_name, role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  if (fetchError && fetchError.code !== 'PGRST116') {
+    console.error('Profile lookup failed:', fetchError)
+    return null
+  }
+
+  if (existingProfile) {
+    return existingProfile
+  }
+
+  const profilePayload = {
+    id: user.id,
+    full_name: fullName || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+    role: 'customer',
+  }
+
+  const { data, error } = await supabase.from('users').insert(profilePayload).select().single()
+
+  if (error) {
+    console.error('Profile creation failed:', error)
+    return null
+  }
+
+  return data
+}
+
 export const authService = {
   async signUp(email, password, fullName) {
-
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
-          full_name: fullName
-        }
-      }
+          full_name: fullName,
+        },
+      },
     })
 
-    if (error) throw error
+    if (error) throw normalizeError(error)
+
+    if (data.user) {
+      await ensureUserProfile(data.user, fullName)
+    }
 
     return {
       user: data.user,
-      session: data.session
+      session: data.session,
     }
   },
 
   async signIn(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
-    const { data, error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+    if (error) throw normalizeError(error)
 
-    if (error) {
-      throw error
+    if (data.user) {
+      await ensureUserProfile(data.user)
     }
 
     return {
       user: data.user,
-      session: data.session
+      session: data.session,
     }
   },
-async signInWithGoogle() {
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.origin
-    }
-  })
 
-  if (error) throw error
-},
+  async signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    })
+
+    if (error) throw normalizeError(error)
+  },
   async signOut() {
 
     const { error } =
@@ -71,33 +118,24 @@ async signInWithGoogle() {
   },
 
   async getSession() {
-
-    const {
-      data: { session }
-    } = await supabase.auth.getSession()
-
+    const { data: { session }, error } = await supabase.auth.getSession()
+    if (error) throw normalizeError(error)
     return session
   },
 
   async getUser() {
-
-    const {
-      data: { user }
-    } = await supabase.auth.getUser()
-
+    const { data: { user }, error } = await supabase.auth.getUser()
+    if (error) throw normalizeError(error)
     return user
   },
 
   async getUserProfile(userId) {
+    const { data, error } = await supabase.from('users').select('*').eq('id', userId).maybeSingle()
 
-    const { data, error } =
-      await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-    if (error) return null
+    if (error && error.code !== 'PGRST116') {
+      console.error('getUserProfile failed:', error)
+      return null
+    }
 
     return data
   },

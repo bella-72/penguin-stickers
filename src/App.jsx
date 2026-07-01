@@ -9,7 +9,6 @@ import AdminRoute from '@/components/AdminRoute'
 // Lazy load pages for performance
 const Home = lazy(() => import('@/pages/Home'))
 const Shop = lazy(() => import('@/pages/Shop'))
-const ProductDetails = lazy(() => import('@/pages/ProductDetails'))
 const CustomSticker = lazy(() => import('@/pages/CustomSticker'))
 const Cart = lazy(() => import('@/pages/Cart'))
 const Checkout = lazy(() => import('@/pages/Checkout'))
@@ -88,7 +87,6 @@ function App() {
           <Route element={<MainLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
-            <Route path="/product/:slug" element={<ProductDetails />} />
             <Route path="/custom" element={<CustomSticker />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />

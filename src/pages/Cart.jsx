@@ -58,8 +58,8 @@ const Cart = () => {
                   {/* Image */}
                   <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl bg-brand-gray-50 dark:bg-brand-gray-800 overflow-hidden shrink-0">
                     <img
-                      src={item.image}
-                      alt={item.name}
+                      src={item.image || item.product?.images?.[0] || item.product?.image || '/stickers/placeholder.webp'}
+                      alt={item.name || item.product?.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&size=200&background=2ECC71&color=fff`

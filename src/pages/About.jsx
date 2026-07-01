@@ -38,8 +38,8 @@ const About = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { icon: MapPin, label: 'Location', value: 'Cairo, Egypt' },
-            { icon: Mail, label: 'Email', value: 'hello@penguinstick.com' },
-            { icon: Phone, label: 'Phone', value: '+20 123 456 7890' },
+            { icon: Mail, label: 'Email', value: 'mbasmla76@gmail.com' },
+            { icon: Phone, label: 'Phone', value: '+201143608754' },
             { icon: Clock, label: 'Hours', value: 'Sat-Thu, 10AM-6PM' },
           ].map((item) => (
             <div key={item.label} className="bg-white dark:bg-brand-dark rounded-2xl p-5 shadow-card text-center">

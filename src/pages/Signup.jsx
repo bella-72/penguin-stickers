@@ -31,7 +31,8 @@ const Signup = () => {
       toast.success(t('auth.signup_success'))
       navigate('/')
     } catch (err) {
-      toast.error(err.message || 'Signup failed')
+      const message = err?.message || err?.error_description || 'Signup failed'
+      toast.error(message)
     } finally {
       setLoading(false)
     }

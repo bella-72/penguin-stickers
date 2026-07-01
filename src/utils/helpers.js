@@ -19,6 +19,12 @@ export const slugify = (text) => {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+export const normalizeProductId = (productId) => {
+  if (productId === null || productId === undefined || productId === '') return ''
+  if (typeof productId === 'string') return productId.trim()
+  return String(productId)
+}
+
 export const getStatusColor = (status) => {
   const colors = {
     pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
@@ -89,7 +95,7 @@ export const governorates = [
 // Demo products for when Supabase is not configured
 export const demoProducts = [
   {
-    id: '1',
+    id: '11111111-1111-4111-8111-111111111111',
     name: 'Artisan Penguin',
     slug: 'artisan-penguin',
     description: 'A beautifully crafted penguin sticker with watercolor art style. Perfect for notebooks and laptops. Premium vinyl with waterproof finish.',
@@ -102,11 +108,11 @@ export const demoProducts = [
     is_new: false,
     finish_types: ['matte', 'glossy', 'holographic'],
     stock: 150,
-    category_id: 'cat1',
+    category_id: '11111111-1111-4111-8111-111111111111',
     categories: { name: 'Animals', slug: 'animals' }
   },
   {
-    id: '2',
+    id: '22222222-2222-4222-8222-222222222222',
     name: 'Lunar Bloom',
     slug: 'lunar-bloom',
     description: 'Ethereal moon and flower design with silver accents. Holographic finish available for extra magic.',
@@ -119,11 +125,11 @@ export const demoProducts = [
     is_new: true,
     finish_types: ['matte', 'glossy', 'holographic'],
     stock: 80,
-    category_id: 'cat2',
+    category_id: '22222222-2222-4222-8222-222222222222',
     categories: { name: 'Nature', slug: 'nature' }
   },
   {
-    id: '3',
+    id: '33333333-3333-4333-8333-333333333333',
     name: 'Cafe Aesthetic',
     slug: 'cafe-aesthetic',
     description: 'Cozy cafe vibes with warm tones and delicate illustrations. A must-have for coffee lovers.',
@@ -136,11 +142,11 @@ export const demoProducts = [
     is_new: false,
     finish_types: ['matte', 'glossy'],
     stock: 200,
-    category_id: 'cat3',
+    category_id: '44444444-4444-4444-8444-444444444444',
     categories: { name: 'Lifestyle', slug: 'lifestyle' }
   },
   {
-    id: '4',
+    id: '44444444-4444-4444-8444-444444444444',
     name: 'Tropical Vibes',
     slug: 'tropical-vibes',
     description: 'Bright tropical leaves and flowers. Bring summer to your everyday items with these vibrant stickers.',
@@ -153,11 +159,11 @@ export const demoProducts = [
     is_new: true,
     finish_types: ['matte', 'glossy', 'holographic'],
     stock: 120,
-    category_id: 'cat2',
+    category_id: '22222222-2222-4222-8222-222222222222',
     categories: { name: 'Nature', slug: 'nature' }
   },
   {
-    id: '5',
+    id: '55555555-5555-4555-8555-555555555555',
     name: 'Holographic Penguin Pack',
     slug: 'holographic-penguin-pack',
     description: 'Our signature penguin collection with stunning holographic finish. Includes 5 unique penguin designs.',
@@ -170,11 +176,11 @@ export const demoProducts = [
     is_new: false,
     finish_types: ['holographic'],
     stock: 50,
-    category_id: 'cat1',
+    category_id: '66666666-6666-4666-8666-666666666666',
     categories: { name: 'Exclusive', slug: 'exclusive' }
   },
   {
-    id: '6',
+    id: '66666666-6666-4666-8666-666666666666',
     name: 'Midnight Mint Tape',
     slug: 'midnight-mint-tape',
     description: 'Washi tape inspired sticker strips in our signature mint color palette. Decorative and versatile.',
@@ -187,11 +193,11 @@ export const demoProducts = [
     is_new: false,
     finish_types: ['matte', 'glossy'],
     stock: 300,
-    category_id: 'cat4',
+    category_id: '77777777-7777-4777-8777-777777777777',
     categories: { name: 'Washi Collection', slug: 'washi' }
   },
   {
-    id: '7',
+    id: '77777777-7777-4777-8777-777777777777',
     name: 'Pastel Galaxy',
     slug: 'pastel-galaxy',
     description: 'Dreamy pastel space designs with stars, planets, and cosmic dust. Perfect for journaling.',
@@ -204,11 +210,11 @@ export const demoProducts = [
     is_new: true,
     finish_types: ['matte', 'glossy', 'holographic'],
     stock: 90,
-    category_id: 'cat5',
+    category_id: '88888888-8888-4888-8888-888888888888',
     categories: { name: 'Fantasy', slug: 'fantasy' }
   },
   {
-    id: '8',
+    id: '88888888-8888-4888-8888-888888888888',
     name: 'Sakura Dreams',
     slug: 'sakura-dreams',
     description: 'Delicate cherry blossom designs inspired by Japanese art. Elegant and minimalist.',
@@ -221,20 +227,20 @@ export const demoProducts = [
     is_new: true,
     finish_types: ['matte', 'glossy'],
     stock: 160,
-    category_id: 'cat2',
+    category_id: '22222222-2222-4222-8222-222222222222',
     categories: { name: 'Nature', slug: 'nature' }
   },
 ]
 
 export const demoCategories = [
-  { id: 'cat1', name: 'Animals', slug: 'animals', image_url: null },
-  { id: 'cat2', name: 'Nature', slug: 'nature', image_url: null },
-  { id: 'cat3', name: 'Lifestyle', slug: 'lifestyle', image_url: null },
-  { id: 'cat4', name: 'Washi Collection', slug: 'washi', image_url: null },
-  { id: 'cat5', name: 'Fantasy', slug: 'fantasy', image_url: null },
-  { id: 'cat6', name: 'Exclusive', slug: 'exclusive', image_url: null },
-  { id: 'cat7', name: 'Korean Style', slug: 'korean-style', image_url: null },
-  { id: 'cat8', name: 'Minimal', slug: 'minimal', image_url: null },
+  { id: '11111111-1111-4111-8111-111111111111', name: 'Animals', slug: 'animals', image_url: null },
+  { id: '22222222-2222-4222-8222-222222222222', name: 'Nature', slug: 'nature', image_url: null },
+  { id: '33333333-3333-4333-8333-333333333333', name: 'Lifestyle', slug: 'lifestyle', image_url: null },
+  { id: '44444444-4444-4444-8444-444444444444', name: 'Washi Collection', slug: 'washi', image_url: null },
+  { id: '55555555-5555-4555-8555-555555555555', name: 'Fantasy', slug: 'fantasy', image_url: null },
+  { id: '66666666-6666-4666-8666-666666666666', name: 'Exclusive', slug: 'exclusive', image_url: null },
+  { id: '77777777-7777-4777-8777-777777777777', name: 'Korean Style', slug: 'korean-style', image_url: null },
+  { id: '88888888-8888-4888-8888-888888888888', name: 'Minimal', slug: 'minimal', image_url: null },
 ]
 
 export const demoReviews = [

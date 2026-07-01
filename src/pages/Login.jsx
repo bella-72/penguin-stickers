@@ -19,59 +19,37 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
-  e.preventDefault()
+    e.preventDefault()
 
-  if (!email || !password) {
-    toast.error('Please fill in all fields')
-    return
-  }
-
-  try {
-    setLoading(true)
-
-    const { isAdmin } = await signIn(email, password)
-
-    toast.success('Login successful')
-
-    navigate(isAdmin ? '/admin' : '/')
-
-  } catch (err) {
-
-    console.log("LOGIN ERROR:", err)
-
-    const message =
-      err?.message ||
-      err?.error_description ||
-      String(err)
-
-    if (message.toLowerCase().includes('invalid login credentials')) {
-
-      toast.error('Invalid email or password')
-
-    } else if (
-      message.toLowerCase().includes('email not confirmed')
-    ) {
-
-      toast.error('Email not confirmed yet')
-
-    } else if (
-      message.toLowerCase().includes('user not found')
-    ) {
-
-      toast.error('No account found with this email')
-
-    } else {
-
-      toast.error(message)
-
+    if (!email || !password) {
+      toast.error('Please fill in all fields')
+      return
     }
 
-  } finally {
+    try {
+      setLoading(true)
+      const { isAdmin } = await signIn(email, password)
+      toast.success('Login successful')
+      navigate(isAdmin ? '/admin' : '/')
+    } catch (err) {
+      console.error('LOGIN ERROR:', err)
 
-    setLoading(false)
+      const message = err?.message || err?.error_description || String(err)
+      const normalized = message.toLowerCase()
 
+      if (normalized.includes('invalid login credentials')) {
+        toast.error('Invalid email or password')
+      } else if (normalized.includes('email not confirmed')) {
+        toast.error('Email not confirmed yet')
+      } else if (normalized.includes('user not found')) {
+        toast.error('No account found with this email')
+      } else {
+        toast.error(message)
+      }
+    } finally {
+      setLoading(false)
+    }
   }
-}
 
   return (
     <div className="min-h-screen flex">
@@ -157,7 +135,7 @@ const Login = () => {
   }}
   className="flex items-center justify-center gap-2 px-4 py-2.5 border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800 transition-colors text-sm font-medium"
 >
-  <span className="text-lg">{t('messages.google_signin')}</span>
+  
   Google
 </button>
           </div>

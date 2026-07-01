@@ -16,26 +16,25 @@ const paymentProofColumnCandidates = [
 ]
 
 export const adminOrdersService = {
-  async getAll({ status, page = 1, limit = 10, search = '' } = {}) {
-    const baseSelect = `
-      id,
-      user_id,
-      full_name,
-      phone,
-      address,
-      governorate,
-      total,
-      status,
-      created_at,
-      payment_method,
-      payment_proof_url,
-      notes,
-      users!user_id(full_name, phone, address, governorate)
-    `
-
+  async getOrders({ status, page = 1, limit = 10, search = '' } = {}) {
     let query = supabase
       .from('orders')
-      .select(baseSelect, { count: 'exact' })
+      .select(`
+        id,
+        user_id,
+        full_name,
+        phone,
+        address,
+        governorate,
+        total,
+        status,
+        created_at,
+        payment_method,
+        payment_proof_url,
+        notes
+      `, { count: 'exact' })
+
+    query = query.neq('status', 'cancelled')
 
     if (status && status !== 'all') {
       query = query.eq('status', status)
@@ -51,38 +50,20 @@ export const adminOrdersService = {
     query = query.range(from, from + limit - 1)
 
     const { data, error, count } = await query
-    if (!error) {
-      return { orders: data || [], total: count || 0 }
+    console.log('Admin fetched orders:', data)
+
+    if (error) {
+      console.log(error.message)
+      console.log(error.details)
+      console.log(error.hint)
+      throw error
     }
 
-    console.log(error.message)
-    console.log(error.details)
-    console.log(error.hint)
+    return { orders: data || [], total: count || 0 }
+  },
 
-    const fallbackQuery = supabase
-      .from('orders')
-      .select('id, user_id, full_name, phone, address, governorate, total, status, created_at, payment_method, payment_proof_url, notes', { count: 'exact' })
-
-    if (status && status !== 'all') {
-      fallbackQuery.eq('status', status)
-    }
-
-    if (search) {
-      fallbackQuery.or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`)
-    }
-
-    const { data: fallbackData, error: fallbackError, count: fallbackCount } = await fallbackQuery
-      .order('created_at', { ascending: false })
-      .range((page - 1) * limit, (page - 1) * limit + limit - 1)
-
-    if (fallbackError) {
-      console.log(fallbackError.message)
-      console.log(fallbackError.details)
-      console.log(fallbackError.hint)
-      return { orders: [], total: 0 }
-    }
-
-    return { orders: fallbackData || [], total: fallbackCount || 0 }
+  async getAll(params = {}) {
+    return this.getOrders(params)
   },
 
   async getById(orderId) {
@@ -155,6 +136,10 @@ export const adminOrdersService = {
   },
 
   async updateStatus(orderId, status) {
+    if (status === 'cancelled') {
+      return ordersService.cancelOrder(orderId)
+    }
+
     const { data, error } = await supabase
       .from('orders')
       .update({ status, updated_at: new Date().toISOString() })
@@ -166,7 +151,7 @@ export const adminOrdersService = {
   },
 
   async deleteOrder(orderId) {
-    return ordersService.deleteOrder(orderId)
+    return ordersService.cancelOrder(orderId)
   },
 
   async getStats() {

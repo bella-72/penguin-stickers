@@ -13,10 +13,10 @@ import { useAuthStore } from '@/store/authStore'
  */
 export const AdminRoute = ({ children }) => {
   const navigate = useNavigate()
-  const { user, profile, isAdmin, loading } = useAuthStore()
+  const { user, profile, isAdmin, loading, isAuthLoading } = useAuthStore()
 
   useEffect(() => {
-    if (loading) return
+    if (isAuthLoading || loading) return
 
     // Redirect if not authenticated or not admin
     if (!user || !isAdmin) {
@@ -24,7 +24,7 @@ export const AdminRoute = ({ children }) => {
     }
   }, [user, isAdmin, loading, navigate])
 
-  if (loading) {
+  if (isAuthLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0f0f1a]">
         <div className="text-center">

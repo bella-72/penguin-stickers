@@ -4,6 +4,7 @@ import { Plus, Search, Edit, Trash2, Image, Check, X } from 'lucide-react'
 import { adminProductsService } from '@/services/adminService'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { formatPrice } from '@/utils/helpers'
+import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 const AdminProducts = () => {
@@ -14,10 +15,15 @@ const AdminProducts = () => {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
+  const [categories, setCategories] = useState([])
+  const [previewUrl, setPreviewUrl] = useState('')
+  const [imageFile, setImageFile] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     price: '',
+    original_price: '',
     stock: '',
     category_id: '',
   })
@@ -41,12 +47,57 @@ const AdminProducts = () => {
     }
   }
 
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('id, name')
+        .order('name', { ascending: true })
+
+      if (error) throw error
+      setCategories(data || [])
+    } catch (err) {
+      console.error('Error loading categories:', err)
+    }
+  }
+
+  const resetForm = () => {
+    if (previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl)
+    }
+    setPreviewUrl('')
+    setImageFile(null)
+    setFormData({ name: '', description: '', price: '', original_price: '', stock: '', category_id: '' })
+  }
+
+  const openForm = (product = null) => {
+    resetForm()
+    if (product) {
+      setEditingId(product.id)
+      setFormData({
+        name: product.name || '',
+        description: product.description || '',
+        price: product.price || '',
+        original_price: product.original_price || '',
+        stock: product.stock || '',
+        category_id: product.category_id || '',
+      })
+      const existingImage = product.images?.[0] || ''
+      setPreviewUrl(existingImage)
+    } else {
+      setEditingId(null)
+      setFormData({ name: '', description: '', price: '', original_price: '', stock: '', category_id: '' })
+    }
+    setShowForm(true)
+  }
+
   useEffect(() => {
     setPage(1)
   }, [search])
 
   useEffect(() => {
     fetchProducts()
+    fetchCategories()
   }, [page, search])
 
   useRealtimeSync({
@@ -58,35 +109,104 @@ const AdminProducts = () => {
     showToast: false,
   })
 
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl)
+    }
+
+    setImageFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+  }
+
+  const ensureProductsBucket = async () => {
+    try {
+      await supabase.storage.createBucket('products', {
+        public: true,
+        fileSizeLimit: 5 * 1024 * 1024,
+      })
+    } catch (error) {
+      const message = error?.message || ''
+      if (!message.toLowerCase().includes('already exists') && !message.toLowerCase().includes('exists')) {
+        console.warn('Bucket check skipped or failed:', error)
+      }
+    }
+  }
+
   const handleAddProduct = async (e) => {
     e.preventDefault()
+
+    if (!formData.name.trim()) {
+      toast.error('Product name is required')
+      return
+    }
+
+    if (!formData.price || Number(formData.price) <= 0) {
+      toast.error('Price is required')
+      return
+    }
+
+    if (!formData.category_id) {
+      toast.error('Please select a category')
+      return
+    }
+
+    if (!imageFile && !previewUrl) {
+      toast.error('Please select an image')
+      return
+    }
+
     try {
+      setUploading(true)
+
+      let images = []
+      if (imageFile) {
+        await ensureProductsBucket()
+
+        const fileExt = imageFile.name.split('.').pop()
+        const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('products')
+          .upload(fileName, imageFile, { cacheControl: '3600', upsert: false })
+
+        if (uploadError) throw uploadError
+
+        const { data: publicUrlData } = supabase.storage.from('products').getPublicUrl(uploadData.path)
+        images = [publicUrlData.publicUrl]
+      } else if (previewUrl) {
+        images = [previewUrl]
+      }
+
+      const payload = {
+        name: formData.name.trim(),
+        slug: formData.name.trim().toLowerCase().replace(/\s+/g, '-'),
+        description: formData.description.trim(),
+        price: parseFloat(formData.price),
+        original_price: formData.original_price ? parseFloat(formData.original_price) : null,
+        stock: parseInt(formData.stock || 0, 10),
+        category_id: formData.category_id,
+        images,
+      }
+
       if (editingId) {
-        await adminProductsService.update(editingId, {
-          name: formData.name,
-          description: formData.description,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
-        })
+        await adminProductsService.update(editingId, payload)
         toast.success('Product updated!')
       } else {
-        await adminProductsService.create({
-          name: formData.name,
-          slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
-          description: formData.description,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
-          category_id: formData.category_id || null,
-        })
+        await adminProductsService.create(payload)
         toast.success('Product added!')
       }
+
       setShowForm(false)
       setEditingId(null)
-      setFormData({ name: '', description: '', price: '', stock: '', category_id: '' })
+      resetForm()
       fetchProducts()
     } catch (err) {
       console.error('Error saving product:', err)
-      toast.error('Failed to save product')
+      toast.error(err?.message || 'Failed to save product')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -113,11 +233,7 @@ const AdminProducts = () => {
           <p className="text-gray-400 text-sm mt-1">Add, edit, and manage product inventory</p>
         </div>
         <button
-          onClick={() => {
-            setShowForm(true)
-            setEditingId(null)
-            setFormData({ name: '', description: '', price: '', stock: '', category_id: '' })
-          }}
+          onClick={() => openForm(null)}
           className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-mint text-white rounded-lg hover:opacity-90 transition-opacity font-medium w-fit"
         >
           <Plus className="w-5 h-5" />
@@ -180,17 +296,7 @@ const AdminProducts = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right space-x-2 flex justify-end">
-                      <button onClick={() => {
-                        setFormData({
-                          name: product.name,
-                          description: product.description,
-                          price: product.price,
-                          stock: product.stock,
-                          category_id: product.category_id,
-                        })
-                        setEditingId(product.id)
-                        setShowForm(true)
-                      }} className="text-blue-400 hover:text-blue-300">
+                      <button onClick={() => openForm(product)} className="text-blue-400 hover:text-blue-300">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button onClick={() => handleDeleteProduct(product.id)} className="text-red-400 hover:text-red-300">
@@ -252,6 +358,17 @@ const AdminProducts = () => {
               </div>
 
               <div>
+                <label className="block text-sm text-gray-400 mb-2">Original Price (Before Discount)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.original_price}
+                  onChange={(e) => setFormData({ ...formData, original_price: e.target.value })}
+                  className="w-full px-4 py-2 bg-[#141428] border border-white/10 rounded-lg focus:border-gradient-mint focus:outline-none"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm text-gray-400 mb-2">Description</label>
                 <textarea
                   value={formData.description}
@@ -272,16 +389,63 @@ const AdminProducts = () => {
                 />
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Category</label>
+                  <select
+                    value={formData.category_id}
+                    onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+                    className="w-full px-4 py-2 bg-[#141428] border border-white/10 rounded-lg focus:border-gradient-mint focus:outline-none"
+                    required
+                  >
+                    <option value="">Select category</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Product Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gradient-mint file:text-white file:cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {previewUrl && (
+                <div className="rounded-xl border border-white/10 p-3 bg-white/5">
+                  <p className="text-sm text-gray-400 mb-2">Image Preview</p>
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="h-32 w-full object-cover rounded-lg"
+                    onError={(e) => {
+                      e.target.src = 'https://ui-avatars.com/api/?name=Product&size=400&background=2ECC71&color=fff'
+                    }}
+                  />
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-gradient-mint text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
+                  disabled={uploading}
+                  className="flex-1 px-4 py-2 bg-gradient-mint text-white rounded-lg hover:opacity-90 transition-opacity font-medium disabled:opacity-60"
                 >
-                  {editingId ? 'Update Product' : 'Add Product'}
+                  {uploading ? 'Uploading...' : editingId ? 'Update Product' : 'Add Product'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowForm(false)}
+                  onClick={() => {
+                    setShowForm(false)
+                    resetForm()
+                  }}
                   className="flex-1 px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
                 >
                   Cancel

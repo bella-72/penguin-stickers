@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useInView } from 'framer-motion'
 import { ArrowRight, Droplets, Award, Truck, Leaf, Star, ChevronRight } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import Button from '@/components/ui/Button'
-import { demoProducts } from '@/utils/helpers'
+import { productsService } from '@/services/products'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 
 /* ─── Animated Section Wrapper ──────── */
 const Section = ({ children, className = '', delay = 0 }) => {
@@ -199,35 +200,64 @@ const ScrollingBanner = () => {
 
 /* ─── Featured Stickers ──────── */
 const FeaturedStickers = () => {
-  const scrollRef = useRef(null)
-  const featured = demoProducts.filter(p => p.is_featured)
+  const [featured, setFeatured] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const loadFeatured = useCallback(async (showLoading = false) => {
+    try {
+      if (showLoading) setLoading(true)
+      const response = await productsService.getAll({ limit: 6 })
+      setFeatured((response.products || []).slice(0, 6))
+    } catch (error) {
+      console.error('Failed to load featured products:', error)
+      setFeatured([])
+    } finally {
+      if (showLoading) setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadFeatured(true)
+  }, [loadFeatured])
+
+  useAutoRefresh(() => loadFeatured(false), 4000)
 
   return (
     <Section className="py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex items-end justify-between mb-10 gap-4">
           <div>
             <p className="text-sm font-medium text-brand-primary uppercase tracking-wider mb-2">Handpicked for you</p>
             <h2 className="font-outfit text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-white">
               Featured Stickers
             </h2>
           </div>
-          <Link to="/shop" className="hidden md:flex items-center gap-1 text-sm font-medium text-brand-primary hover:gap-2 transition-all">
+          <Link to="/shop" className="hidden md:inline-flex items-center gap-1 text-sm font-medium text-brand-primary hover:gap-2 transition-all">
             View All <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
 
-        {/* Horizontal scroll */}
-        <div
-          ref={scrollRef}
-          className="flex gap-5 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 snap-x"
-        >
-          {featured.map((product, i) => (
-            <div key={product.id} className="min-w-[260px] max-w-[260px] snap-start">
-              <ProductCard product={product} index={i} />
-            </div>
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex gap-5 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="min-w-[260px] max-w-[260px]">
+                <div className="h-[360px] rounded-2xl bg-brand-gray-100 dark:bg-brand-gray-800 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        ) : featured.length > 0 ? (
+          <div className="flex gap-5 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 snap-x snap-mandatory">
+            {featured.map((product, i) => (
+              <div key={product.id} className="min-w-[260px] max-w-[260px] snap-start">
+                <ProductCard product={product} index={i} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-brand-gray-200 dark:border-brand-gray-700 p-8 text-center text-sm text-brand-gray-500">
+            No featured products available right now.
+          </div>
+        )}
 
         <Link to="/shop" className="md:hidden flex items-center justify-center gap-1 text-sm font-medium text-brand-primary mt-6">
           View All Products <ChevronRight className="w-4 h-4" />

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Search, ChevronDown, Eye, Trash2, MoreVertical, Filter } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 import { adminOrdersService } from '@/services/adminService'
-import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { formatPrice } from '@/utils/helpers'
+import { useAutoRefresh } from '@/hooks/useAutoRefresh'
 import toast from 'react-hot-toast'
 
 const AdminOrders = () => {
@@ -18,7 +19,7 @@ const AdminOrders = () => {
   const [newStatus, setNewStatus] = useState('')
   const limit = 10
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       setLoading(true)
       const data = await adminOrdersService.getAll({
@@ -27,15 +28,32 @@ const AdminOrders = () => {
         limit,
         search,
       })
-      setOrders(data.orders)
-      setTotal(data.total)
+      setOrders(data.orders || [])
+      setTotal(data.total || 0)
+
+      const { data: freshOrders, error } = await supabase
+        .from('orders')
+        .select('*')
+        .neq('status', 'cancelled')
+        .order('created_at', { ascending: false })
+
+      console.log('Admin fetched orders:', freshOrders, error)
+
+      if (!error) {
+        setOrders(freshOrders || [])
+      }
+
+      if (selectedOrder && !data.orders?.some((order) => order.id === selectedOrder.id)) {
+        setSelectedOrder(null)
+        setShowModal(false)
+      }
     } catch (err) {
       console.error('Error fetching orders:', err)
       toast.error('Failed to load orders')
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, limit, search, selectedOrder, statusFilter])
 
   useEffect(() => {
     setPage(1)
@@ -43,24 +61,17 @@ const AdminOrders = () => {
 
   useEffect(() => {
     fetchOrders()
-  }, [page, search, statusFilter])
+  }, [fetchOrders])
 
-  useRealtimeSync({
-    table: 'orders',
-    event: 'UPDATE',
-    onUpdate: () => {
-      fetchOrders()
-    },
-    showToast: false,
-  })
+  useAutoRefresh(fetchOrders, 5000)
 
   const handleStatusChange = async () => {
     if (!selectedOrder || !newStatus) return
 
     try {
       if (newStatus === 'cancelled') {
-        await adminOrdersService.deleteOrder(selectedOrder.id)
-        toast.success('Order cancelled and deleted successfully')
+        await adminOrdersService.updateStatus(selectedOrder.id, 'cancelled')
+        toast.success('Order cancelled successfully')
       } else {
         await adminOrdersService.updateStatus(selectedOrder.id, newStatus)
         toast.success('Order status updated!')
