@@ -211,14 +211,26 @@ const AdminProducts = () => {
   }
 
   const handleDeleteProduct = async (id) => {
-    if (!window.confirm('Are you sure?')) return
-    try {
-      await adminProductsService.delete(id)
-      toast.success('Product deleted!')
-      fetchProducts()
-    } catch (err) {
-      console.error('Error deleting product:', err)
+    const productId = typeof id === 'string' || typeof id === 'number' ? String(id) : ''
+
+    if (!productId || productId === 'undefined' || productId === 'null') {
+      console.error('Delete aborted: invalid product id', id)
       toast.error('Failed to delete product')
+      return
+    }
+
+    if (!window.confirm('Are you sure?')) return
+
+    try {
+      console.log('Deleting product from admin:', productId)
+      await adminProductsService.delete(productId)
+
+      setProducts((prevProducts) => prevProducts.filter((product) => String(product.id) !== productId))
+      setTotal((prevTotal) => Math.max(prevTotal - 1, 0))
+      toast.success('Product deleted!')
+    } catch (err) {
+      console.error('Error deleting product:', err, { productId })
+      toast.error(err?.message || 'Failed to delete product')
     }
   }
 
@@ -299,7 +311,7 @@ const AdminProducts = () => {
                       <button onClick={() => openForm(product)} className="text-blue-400 hover:text-blue-300">
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDeleteProduct(product.id)} className="text-red-400 hover:text-red-300">
+                      <button onClick={() => handleDeleteProduct(product?.id)} className="text-red-400 hover:text-red-300">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </td>

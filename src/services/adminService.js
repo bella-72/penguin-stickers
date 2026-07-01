@@ -269,11 +269,28 @@ export const adminProductsService = {
   },
 
   async delete(productId) {
-    const { error } = await supabase
+    const normalizedProductId = typeof productId === 'string' || typeof productId === 'number' ? String(productId) : ''
+
+    if (!normalizedProductId || normalizedProductId === 'undefined' || normalizedProductId === 'null') {
+      const error = new Error('Invalid product id provided for delete')
+      console.error('Admin delete aborted:', error)
+      throw error
+    }
+
+    console.log('Executing delete query for product:', normalizedProductId)
+
+    const { data, error } = await supabase
       .from('products')
       .delete()
-      .eq('id', productId)
-    if (error) throw error
+      .eq('id', normalizedProductId)
+      .select('id')
+
+    if (error) {
+      console.error('Supabase delete products error:', error)
+      throw error
+    }
+
+    return data
   },
 
   async getStats() {
