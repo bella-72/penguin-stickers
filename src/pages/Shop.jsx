@@ -63,9 +63,6 @@ const [currentPage, setCurrentPage] = useState(1);
     loadCategories()
   }, [loadCategories])
 
-  useAutoRefresh(loadProducts, 5000)
-  useAutoRefresh(loadCategories, 5000)
-
   const filteredProducts = useMemo(() => {
     let productsToRender = [...products]
 
@@ -210,9 +207,9 @@ useEffect(() => {
 </p>
 
             {loading ? (
-              <div className={`grid gap-5 ${
+              <div className={`grid gap-3 md:gap-5 ${
                 viewMode === 'grid'
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                  ? 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
                   : 'grid-cols-1'
               }`}>
                 {Array.from({ length: 6 }).map((_, i) => (
