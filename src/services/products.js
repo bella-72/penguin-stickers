@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { demoCategories, demoProducts, normalizeProductId } from '@/utils/helpers'
 
 export const productsService = {
-  async getAll({ category, search, sort, page = 1, limit = 12 } = {}) {
+  async getAll({ category, search, sort } = {}) {
     let query = supabase.from('products').select('*, categories(name)', { count: 'exact' })
 
     if (category) query = query.eq('category_id', category)
@@ -13,8 +13,6 @@ export const productsService = {
     else if (sort === 'rating') query = query.order('rating', { ascending: false })
     else query = query.order('created_at', { ascending: false })
 
-    const from = (page - 1) * limit
-    query = query.range(from, from + limit - 1)
 
     const { data, error, count } = await query
     if (error) throw error
