@@ -69,11 +69,8 @@ const Cart = () => {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-outfit font-semibold text-brand-gray-800 dark:text-white truncate">
-                      {item.name}
-                    </h3>
                     <p className="text-xs text-brand-gray-400 capitalize mt-0.5">
-                      {item.category} • {item.finish_type}
+                      {item.category} 
                     </p>
 
                     <div className="flex items-center justify-between mt-3">
