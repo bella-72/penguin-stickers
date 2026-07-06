@@ -173,35 +173,35 @@ const ProductCard = ({ product, index = 0 }) => {
 
           <div className="flex items-center gap-2">
 
-            <div className="flex items-center border rounded-full p-1">
+           <div className="flex items-center border rounded-full p-1 flex-shrink-0">
 
               <button
                 onClick={(e) => handleQuantityChange(-1, e)}
-                className="w-8 h-8 flex items-center justify-center"
+                className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center"
               >
                 <Minus size={14} />
               </button>
 
-              <span className="w-8 text-center">
+              <span className="w-6 md:w-8 text-center text-sm">
                 {quantity}
               </span>
 
               <button
                 onClick={(e) => handleQuantityChange(1, e)}
-                className="w-8 h-8 flex items-center justify-center"
+                className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center"
               >
                 <Plus size={14} />
               </button>
 
             </div>
 
-            <button
-              onClick={handleAddToCart}
-             className="flex-1 flex items-center justify-center gap-1 bg-brand-primary text-white rounded-full py-2 px-2 text-[11px] md:text-sm min-w-0"
-            >
-              <ShoppingCart size={16} />
-              Add to Cart
-            </button>
+          <button
+  onClick={handleAddToCart}
+  className="flex-1 flex items-center justify-center gap-1 bg-brand-primary text-white rounded-full py-2 px-3 text-sm font-medium"
+>
+  <ShoppingCart size={15} />
+  <span>Add</span>
+</button>
 
           </div>
 
