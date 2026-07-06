@@ -197,7 +197,7 @@ const ProductCard = ({ product, index = 0 }) => {
 
             <button
               onClick={handleAddToCart}
-              className="flex-1 flex items-center justify-center gap-2 bg-brand-primary text-white rounded-full py-2"
+             className="flex-1 flex items-center justify-center gap-1 bg-brand-primary text-white rounded-full py-2 px-2 text-[11px] md:text-sm min-w-0"
             >
               <ShoppingCart size={16} />
               Add to Cart
