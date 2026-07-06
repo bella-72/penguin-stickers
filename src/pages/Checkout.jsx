@@ -21,12 +21,16 @@ const Checkout = () => {
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cod')
 
-  const paymentMethods = [
-    { id: 'cod', name: t('checkout.cod'), icon: Banknote, desc: t('checkout.cod_desc') },
-    { id: 'vodafone', name: t('checkout.vodafone'), icon: Smartphone, desc: t('checkout.vodafone_desc') },
-    { id: 'instapay', name: t('checkout.instapay'), icon: CreditCard, desc: t('checkout.instapay_desc') },
-  ]
-
+const paymentMethods = [
+  {
+    id: 'cod',
+    name: 'Cash on Delivery',
+    icon: Banknote,
+    desc: 'Pay when your order arrives'
+  },
+  { id: 'vodafone', name: t('cash'), icon: Smartphone, desc: t('checkout.vodafone_desc') },
+  { id: 'instapay', name: t('instapay'), icon: CreditCard, desc: t('checkout.instapay_desc') },
+]
   const [form, setForm] = useState({
     fullName: '', phone: '', address: '', governorate: '', notes: ''
   })
