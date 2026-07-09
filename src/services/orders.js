@@ -42,7 +42,7 @@ export const ordersService = {
       payment_proof_url: proofUrl,
       subtotal: Number(order.subtotal || 0),
       shipping: Number(order.shipping || 0),
-      discount: Number(order.discount || 0),
+      discount: Number(order.discount_amount || 0),
       total: Number(order.total || 0),
       status: order.status || 'pending',
     }

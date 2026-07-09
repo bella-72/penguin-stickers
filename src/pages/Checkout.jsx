@@ -12,7 +12,7 @@ import { storageService } from '@/services/api'
 import { formatPrice, governorates } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
-
+import { discountCodesService } from "@/services/discountCodes";
 const Checkout = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -39,7 +39,17 @@ const paymentMethods = [
     screenshot: null,
     screenshotPreview: ''
   })
+const [couponCode, setCouponCode] = useState("");
 
+const [coupon, setCoupon] = useState(null);
+const [couponLoading, setCouponLoading] = useState(false);
+const discount = coupon
+  ? Math.round((getSubtotal() * coupon.discount_percent) / 100)
+  : 0;
+const finalTotal =
+  getSubtotal() +
+  getShipping() -
+  discount;
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm({ ...form, [name]: value })
@@ -90,7 +100,40 @@ const paymentMethods = [
       throw error
     }
   }
+const applyCoupon = async () => {
+  setCoupon(null);
+  if (!couponCode.trim()) {
+    return toast.error("Please enter coupon code");
+  }
 
+  try {
+    setCouponLoading(true);
+
+    const data = await discountCodesService.getByCode(
+      couponCode.toUpperCase()
+    );
+
+    if (!data) {
+      return toast.error("Coupon not found");
+    }
+    
+    
+if (data.expires_at && new Date(data.expires_at) < new Date()) {
+  return toast.error("Coupon expired");
+}
+if (data.discount_percent <= 0) {
+  return toast.error("Invalid discount");
+}
+    setCoupon(data);
+
+    toast.success("Coupon applied 🎉");
+  } catch (error) {
+    console.error(error);
+    toast.error("Invalid coupon");
+  } finally {
+    setCouponLoading(false);
+  }
+};
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.fullName || !form.phone || !form.address) {
@@ -132,6 +175,9 @@ const paymentMethods = [
       }
 
       console.log('PAYMENT IMAGE URL BEFORE ORDER:', paymentProofUrl)
+      const subtotal = getSubtotal();
+      const shipping = getShipping();
+      const total = subtotal + shipping - discount;
 
       const orderPayload = {
         user_id: user.id,
@@ -142,10 +188,13 @@ const paymentMethods = [
         notes: form.notes || null,
         payment_method: paymentMethod,
         payment_proof_url: paymentProofUrl ?? null,
-        subtotal: getSubtotal(),
-        shipping: getShipping(),
-        total: getTotal(),
-        status: 'pending',
+       subtotal,
+       shipping,
+discount_code: coupon?.code ?? null,
+discount_percent: coupon?.discount_percent ?? 0,
+discount_amount: discount,
+total,
+status: 'pending',
         items: items.map(item => ({
           product_id: item.product_id || item.id,
           product_name: item.name,
@@ -160,9 +209,12 @@ const paymentMethods = [
 
       await ordersService.create(orderPayload)
 
+
       console.log('Checkout order inserted successfully')
 
       clearCart()
+      setCoupon(null);
+setCouponCode("");
       setOrderPlaced(true)
     } catch (error) {
       console.log('supabase error:', error)
@@ -372,14 +424,57 @@ const paymentMethods = [
                       </div>
                       <span className="text-sm font-medium">{formatPrice(item.price * item.quantity)}</span>
                     </div>
+                    
                   ))}
+                  <div className="border-t border-brand-gray-100 dark:border-brand-gray-700 pt-4 mb-4">
+
+  <label className="block text-sm font-medium mb-2">
+    Discount Coupon
+  </label>
+
+  <div className="flex gap-2">
+
+    <input
+      value={couponCode}
+      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+      placeholder="Enter coupon"
+      className="flex-1 px-4 py-2 rounded-xl bg-white dark:bg-brand-dark border border-brand-gray-200 dark:border-brand-gray-700"
+    />
+
+    <Button
+      type="button"
+      loading={couponLoading}
+      onClick={applyCoupon}
+    >
+      Apply
+    </Button>
+
+  </div>
+
+  {coupon && (
+    <p className="mt-2 text-green-500 text-sm">
+      Coupon applied ({coupon.discount_percent}% OFF)
+    </p>
+  )}
+
+</div>
                 </div>
                 <div className="border-t border-brand-gray-100 dark:border-brand-gray-700 pt-4 space-y-2 text-sm">
                   <div className="flex justify-between text-brand-gray-500"><span>Subtotal</span><span>{formatPrice(getSubtotal())}</span></div>
                   <div className="flex justify-between text-brand-gray-500"><span>Shipping</span><span>{form.governorate ? (getShipping() === 0 ? 'Free Shipping' : formatPrice(getShipping())) : 'Select governorate'}</span></div>
+                  {coupon && (
+  <div className="flex justify-between text-green-600">
+    <span>Discount ({coupon.discount_percent}%)</span>
+    <span>-{formatPrice(discount)}</span>
+  </div>
+)}
                   <div className="flex justify-between items-center pt-2 border-t border-brand-gray-100 dark:border-brand-gray-700">
                     <span className="font-medium">Total</span>
-                    <span className="font-outfit text-2xl font-bold text-brand-primary">{form.governorate ? formatPrice(getTotal()) : '-'}</span>
+                    <span className="font-outfit text-2xl font-bold text-brand-primary">
+  {form.governorate
+    ? formatPrice(finalTotal)
+    : "-"}
+</span>
                   </div>
                 </div>
                 <Button type="submit" className="w-full mt-6" size="lg" loading={loading} iconRight={ArrowRight}>

@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore'
 import MainLayout from '@/layouts/MainLayout'
 import AdminLayout from '@/layouts/AdminLayout'
 import AdminRoute from '@/components/AdminRoute'
-
+import DiscountCodes from './pages/admin/DiscountCodes'
 // Lazy load pages for performance
 const Home = lazy(() => import('@/pages/Home'))
 const Shop = lazy(() => import('@/pages/Shop'))
@@ -103,6 +103,10 @@ function App() {
             <Route path="categories" element={<AdminCategories />} />
             <Route path="custom-requests" element={<AdminCustomRequests />} />
             <Route path="analytics" element={<AdminAnalytics />} />
+            <Route
+  path="discount-codes"
+  element={<DiscountCodes />}
+/>
           </Route>
 
         </Routes>
