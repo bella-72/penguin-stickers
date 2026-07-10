@@ -30,25 +30,26 @@ export const ordersService = {
   async create(orderData) {
     const { items, ...order } = orderData
     const proofUrl = order.payment_proof_url ?? order.payment_proofUrl ?? order.payment_screenshot ?? order.screenshot_url ?? order.payment_image ?? order.payment_proof ?? null
+    const normalizedPaymentMethod = order.payment_method === 'vodafone' || order.payment_method === 'instapay' || order.payment_method === 'cod'
+      ? order.payment_method
+      : order.payment_method === 'cash'
+        ? 'cod'
+        : 'cod'
 
     const orderInsert = {
-      user_id: order.user_id || null,
+      user_id: order.user_id ?? null,
       full_name: order.full_name,
       phone: order.phone,
       address: order.address,
       governorate: order.governorate,
       notes: order.notes || null,
-      payment_method: order.payment_method,
+      payment_method: normalizedPaymentMethod,
       payment_proof_url: proofUrl,
       subtotal: Number(order.subtotal || 0),
       shipping: Number(order.shipping || 0),
       discount: Number(order.discount_amount || 0),
       total: Number(order.total || 0),
       status: order.status || 'pending',
-    }
-
-    if (!orderInsert.user_id) {
-      throw new Error('No authenticated user found for this order')
     }
 
     console.log('Creating order payload:', orderInsert)

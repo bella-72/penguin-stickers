@@ -13,6 +13,12 @@ import { formatPrice, governorates } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { discountCodesService } from "@/services/discountCodes";
+const normalizePaymentMethod = (value) => {
+  if (value === 'vodafone' || value === 'instapay' || value === 'cod') return value
+  if (value === 'cash') return 'cod'
+  return 'cod'
+}
+
 const Checkout = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -145,8 +151,10 @@ if (data.discount_percent <= 0) {
       return
     }
     
+    const normalizedPaymentMethod = normalizePaymentMethod(paymentMethod)
+
     // Validate payment method specific fields
-    if (paymentMethod === 'vodafone' || paymentMethod === 'instapay') {
+    if (normalizedPaymentMethod === 'vodafone' || normalizedPaymentMethod === 'instapay') {
       if (!paymentDetails.transactionId) {
         toast.error('Please enter the transaction ID')
         return
@@ -162,14 +170,9 @@ if (data.discount_percent <= 0) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
 
-      if (!user?.id) {
-        toast.error('Please sign in before placing an order')
-        return
-      }
-
       let paymentProofUrl = null
 
-      if ((paymentMethod === 'vodafone' || paymentMethod === 'instapay') && paymentDetails.screenshot) {
+      if ((normalizedPaymentMethod === 'vodafone' || normalizedPaymentMethod === 'instapay') && paymentDetails.screenshot) {
         paymentProofUrl = await uploadPaymentProof(paymentDetails.screenshot)
         console.log('uploaded payment proof url:', paymentProofUrl)
       }
@@ -180,13 +183,13 @@ if (data.discount_percent <= 0) {
       const total = subtotal + shipping - discount;
 
       const orderPayload = {
-        user_id: user.id,
+        user_id: user?.id ?? null,
         full_name: form.fullName,
         phone: form.phone,
         address: form.address,
         governorate: form.governorate,
         notes: form.notes || null,
-        payment_method: paymentMethod,
+        payment_method: normalizedPaymentMethod,
         payment_proof_url: paymentProofUrl ?? null,
        subtotal,
        shipping,

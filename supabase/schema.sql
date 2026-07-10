@@ -129,7 +129,7 @@ CREATE TABLE public.orders (
 
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view own orders" ON public.orders FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Users can create orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can create orders" ON public.orders FOR INSERT WITH CHECK (auth.uid() = user_id OR user_id IS NULL);
 CREATE POLICY "Users can delete own orders" ON public.orders FOR DELETE TO authenticated USING (auth.uid() = user_id);
 CREATE POLICY "Admins can manage all orders" ON public.orders FOR ALL USING (
   EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
@@ -154,7 +154,10 @@ CREATE POLICY "Users can view own order items" ON public.order_items FOR SELECT 
   EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid())
 );
 CREATE POLICY "Users can create order items" ON public.order_items FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM public.orders WHERE id = order_id AND user_id = auth.uid())
+  EXISTS (
+    SELECT 1 FROM public.orders
+    WHERE id = order_id AND (user_id = auth.uid() OR user_id IS NULL)
+  )
 );
 CREATE POLICY "Users can delete order items" ON public.order_items FOR DELETE TO authenticated USING (true);
 CREATE POLICY "Admins can manage all order items" ON public.order_items FOR ALL USING (
