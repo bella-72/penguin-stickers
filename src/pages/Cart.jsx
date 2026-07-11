@@ -122,7 +122,7 @@ const Cart = () => {
                 </div>
                 <div className="flex justify-between text-brand-gray-600 dark:text-brand-gray-400">
                   <span>{t('cart.shipping')}</span>
-                  <span>{shipping === 0 ? t('common.free_shipping') : formatPrice(shipping)}</span>
+                  <span>{shipping === 0 ? t('--') : formatPrice(shipping)}</span>
                 </div>
                 <div className="border-t border-brand-gray-100 dark:border-brand-gray-700 pt-3 flex justify-between items-center">
                   <span className="font-medium text-brand-gray-800 dark:text-white">{t('cart.total')}</span>
