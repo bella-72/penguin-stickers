@@ -39,7 +39,7 @@ const Cart = () => {
           animate={{ opacity: 1, y: 0 }}
           className="font-outfit text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-white mb-8"
         >
-          {t('cart.title')}
+          {t('title')}
         </motion.h1>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -113,26 +113,26 @@ const Cart = () => {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card sticky top-28">
-              <h2 className="font-outfit text-xl font-semibold mb-6">{t('cart.checkout')}</h2>
+              <h2 className="font-outfit text-xl font-semibold mb-6">{t('checkout')}</h2>
 
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between text-brand-gray-600 dark:text-brand-gray-400">
-                  <span>{t('cart.subtotal')}</span>
+                  <span>{t('subtotal')}</span>
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-brand-gray-600 dark:text-brand-gray-400">
-                  <span>{t('cart.shipping')}</span>
+                  <span>{t('shipping')}</span>
                   <span>{shipping === 0 ? t('--') : formatPrice(shipping)}</span>
                 </div>
                 <div className="border-t border-brand-gray-100 dark:border-brand-gray-700 pt-3 flex justify-between items-center">
-                  <span className="font-medium text-brand-gray-800 dark:text-white">{t('cart.total')}</span>
+                  <span className="font-medium text-brand-gray-800 dark:text-white">{t('total')}</span>
                   <span className="font-outfit text-2xl font-bold text-brand-primary">{formatPrice(total)}</span>
                 </div>
               </div>
 
               <Link to="/checkout" className="block mt-6">
                 <Button className="w-full" size="lg" iconRight={ArrowRight}>
-                  {t('cart.checkout')}
+                  {t('checkout')}
                 </Button>
               </Link>
 
