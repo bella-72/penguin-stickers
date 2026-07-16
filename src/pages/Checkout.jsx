@@ -38,7 +38,7 @@ const paymentMethods = [
   { id: 'instapay', name: t('instapay'), icon: CreditCard, desc: t('checkout.instapay_desc') },
 ]
   const [form, setForm] = useState({
-    fullName: '', phone: '', address: '', governorate: '', notes: ''
+    firstName: '', fatherName: '', lastName: '', phone: '', address: '', governorate: '', notes: ''
   })
   const [paymentDetails, setPaymentDetails] = useState({
     transactionId: '',
@@ -142,7 +142,7 @@ if (data.discount_percent <= 0) {
 };
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.fullName || !form.phone || !form.address) {
+    if (!form.firstName || !form.fatherName || !form.lastName || !form.phone || !form.address) {
       toast.error('Please fill in all required fields')
       return
     }
@@ -184,7 +184,7 @@ if (data.discount_percent <= 0) {
 
       const orderPayload = {
         user_id: user?.id ?? null,
-        full_name: form.fullName,
+        full_name: `${form.firstName.trim()} ${form.fatherName.trim()} ${form.lastName.trim()}`,
         phone: form.phone,
         address: form.address,
         governorate: form.governorate,
@@ -279,8 +279,12 @@ setCouponCode("");
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                 className="bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card">
                 <h2 className="font-outfit text-xl font-semibold mb-5">Shipping Information</h2>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <Input label="Full Name" name="fullName" value={form.fullName} onChange={handleChange} placeholder="Enter your name" required />
+                <div className="grid sm:grid-cols-3 gap-4">
+                  <Input label="First Name" name="firstName" value={form.firstName} onChange={handleChange} placeholder="Enter first name" required />
+                  <Input label="Father Name" name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Enter father name" required />
+                  <Input label="Last Name" name="lastName" value={form.lastName} onChange={handleChange} placeholder="Enter last name" required />
+                </div>
+                <div className="mt-4">
                   <Input label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="+20 123 456 7890" required />
                 </div>
                 <div className="mt-4">
