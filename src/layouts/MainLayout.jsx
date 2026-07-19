@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import CouponHelper from '@/components/CouponHelper'
 import { Toaster } from 'react-hot-toast'
 
 const MainLayout = () => {
@@ -29,6 +30,7 @@ const MainLayout = () => {
       >
         <Outlet />
       </motion.main>
+      <CouponHelper />
       <Footer />
     </div>
   )

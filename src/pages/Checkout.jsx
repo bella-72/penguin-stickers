@@ -22,7 +22,7 @@ const normalizePaymentMethod = (value) => {
 const Checkout = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { items, getSubtotal, getShipping, getTotal, clearCart, setGovernorate, selectedGovernorate } = useCartStore()
+  const { items, getSubtotal, getShipping, getTotal, clearCart, setGovernorate } = useCartStore()
   const [loading, setLoading] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cod')
@@ -45,17 +45,18 @@ const paymentMethods = [
     screenshot: null,
     screenshotPreview: ''
   })
-const [couponCode, setCouponCode] = useState("");
-
-const [coupon, setCoupon] = useState(null);
-const [couponLoading, setCouponLoading] = useState(false);
-const discount = coupon
-  ? Math.round((getSubtotal() * coupon.discount_percent) / 100)
-  : 0;
-const finalTotal =
-  getSubtotal() +
-  getShipping() -
-  discount;
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [successOrder, setSuccessOrder] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const discount = coupon
+    ? Math.round((getSubtotal() * coupon.discount_percent) / 100)
+    : 0;
+  const finalTotal =
+    getSubtotal() +
+    getShipping() -
+    discount;
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm({ ...form, [name]: value })
@@ -210,15 +211,17 @@ status: 'pending',
 
       console.log(orderPayload)
 
-      await ordersService.create(orderPayload)
+      const createdOrder = await ordersService.create(orderPayload)
 
-
-      console.log('Checkout order inserted successfully')
+      console.log('Checkout order inserted successfully', createdOrder)
 
       clearCart()
-      setCoupon(null);
-setCouponCode("");
+      setCoupon(null)
+      setCouponCode("")
+      setSuccessOrder(createdOrder)
+      setIsLoggedIn(Boolean(user?.id))
       setOrderPlaced(true)
+      
     } catch (error) {
       console.log('supabase error:', error)
       console.log(error?.message)
@@ -232,36 +235,31 @@ setCouponCode("");
 
   if (orderPlaced) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center max-w-md mx-auto p-8"
-        >
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-slate-50 dark:bg-slate-950">
+        <div className="w-full max-w-md text-center px-6 py-10 rounded-3xl bg-white shadow-2xl dark:bg-slate-900">
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', delay: 0.2 }}
-            className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-6"
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: 'spring', stiffness: 240, damping: 18 }}
+            className="mx-auto mb-8 flex h-28 w-28 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-lg"
           >
-            <CheckCircle2 className="w-12 h-12 text-green-500" />
+            <CheckCircle2 className="h-20 w-20" />
           </motion.div>
-          <h2 className="font-outfit text-3xl font-bold text-brand-gray-900 dark:text-white mb-3">Order Placed! 🎉</h2>
-          <p className="text-brand-gray-500 dark:text-brand-gray-400 mb-6">
-            Thank you for your order! We'll start preparing your stickers right away. You'll receive updates via SMS.
+          <h1 className="text-4xl font-bold text-emerald-700 mb-4">
+            Order Placed Successfully!
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-300 mb-8">
+            Thank you! We'll contact you soon.
           </p>
-          <div className="flex gap-3 justify-center">
-            <Button onClick={() => navigate('/shop')} iconRight={ArrowRight}>Continue Shopping</Button>
-            <Button variant="secondary" onClick={() => navigate('/profile')}>View Orders</Button>
-          </div>
-        </motion.div>
+          <Button
+            onClick={() => navigate('/shop')}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6 py-3"
+          >
+            Continue Shopping
+          </Button>
+        </div>
       </div>
     )
-  }
-
-  if (items.length === 0) {
-    navigate('/cart')
-    return null
   }
 
   return (
@@ -492,6 +490,7 @@ setCouponCode("");
           </div>
         </form>
       </div>
+
     </div>
   )
 }
