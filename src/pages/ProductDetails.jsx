@@ -9,6 +9,7 @@ import { useCartStore } from '@/store/cartStore'
 import { productsService } from '@/services/products'
 import { formatPrice } from '@/utils/helpers'
 import toast from 'react-hot-toast'
+import ReactPixel from 'react-facebook-pixel'
 
 const ProductDetails = () => {
   const { slug } = useParams()
@@ -44,12 +45,30 @@ const ProductDetails = () => {
   }, [slug])
 
   if (!product) return null
-
-  const handleAddToCart = () => {
-    addItem(product, quantity)
-    toast.success(`${product.name} added to cart!`, { icon: '🛒' })
+useEffect(() => {
+  if (product) {
+    ReactPixel.track('ViewContent', {
+      content_name: product.name,
+      content_ids: [product.id],
+      content_type: 'product',
+      value: product.price,
+      currency: 'EGP'
+    })
   }
+}, [product])
+  const handleAddToCart = () => {
+  addItem(product, quantity)
 
+  ReactPixel.track('AddToCart', {
+    content_name: product.name,
+    content_ids: [product.id],
+    value: product.price * quantity,
+    currency: 'EGP',
+    quantity: quantity,
+  })
+
+  toast.success(`${product.name} added to cart!`, { icon: '🛒' })
+}
   return (
     <div className="min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

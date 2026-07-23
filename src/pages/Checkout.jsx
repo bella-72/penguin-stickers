@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
@@ -13,6 +13,7 @@ import { formatPrice, governorates } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { discountCodesService } from "@/services/discountCodes";
+import ReactPixel from 'react-facebook-pixel'
 const normalizePaymentMethod = (value) => {
   if (value === 'vodafone' || value === 'instapay' || value === 'cod') return value
   if (value === 'cash') return 'cod'
@@ -57,6 +58,15 @@ const paymentMethods = [
     getSubtotal() +
     getShipping() -
     discount;
+    useEffect(() => {
+  if (items.length > 0) {
+    ReactPixel.track('InitiateCheckout', {
+      value: finalTotal,
+      currency: 'EGP',
+      num_items: items.length,
+    })
+  }
+}, [items, finalTotal])
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm({ ...form, [name]: value })
@@ -212,7 +222,12 @@ status: 'pending',
       console.log(orderPayload)
 
       const createdOrder = await ordersService.create(orderPayload)
-
+      ReactPixel.track('Purchase', {
+  value: total,
+  currency: 'EGP',
+  content_type: 'product',
+  num_items: items.length
+})
       console.log('Checkout order inserted successfully', createdOrder)
 
       clearCart()
