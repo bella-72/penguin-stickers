@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
+import ShippingAnnouncement from '@/components/layout/ShippingAnnouncement'
 import CouponHelper from '@/components/CouponHelper'
 import { Toaster } from 'react-hot-toast'
 
@@ -21,9 +22,10 @@ const MainLayout = () => {
           },
         }}
       />
+      <ShippingAnnouncement />
       <Navbar />
       <motion.main
-        className="flex-1 pt-16 md:pt-20"
+        className="flex-1 pt-[5.5rem] md:pt-[7.25rem]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
