@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
@@ -5,11 +6,26 @@ import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, Truck } from 'lucide-reac
 import Button from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/Elements'
 import { useCartStore } from '@/store/cartStore'
+import { productsService } from '@/services/products'
 import { formatPrice } from '@/utils/helpers'
+import toast from 'react-hot-toast'
 
 const Cart = () => {
   const { t } = useTranslation()
-  const { items, updateQuantity, removeItem, getSubtotal, getShipping, getTotal } = useCartStore()
+  const { items, updateQuantity, removeItem, getSubtotal, getShipping, getTotal, syncProductPrices } = useCartStore()
+  const productIds = items.map((item) => item.product_id || item.id).join(',')
+
+  useEffect(() => {
+    if (!productIds) return
+
+    productsService.getByIds(productIds.split(','))
+      .then(syncProductPrices)
+      .catch((error) => {
+        console.error('Failed to refresh cart product prices:', error)
+        toast.error(error.message || 'Unable to refresh product prices.')
+      })
+  }, [productIds, syncProductPrices])
+
   const subtotal = getSubtotal()
   const shipping = getShipping()
   const total = getTotal()
@@ -92,9 +108,16 @@ const Cart = () => {
                       </div>
 
                       {/* Price */}
-                      <span className="font-outfit font-bold text-brand-primary">
-                        {formatPrice(item.price * item.quantity)}
-                      </span>
+                      <div className="flex flex-col items-end">
+                        <span className="font-outfit font-bold text-brand-primary">
+                          {formatPrice(item.price * item.quantity)}
+                        </span>
+                        {Number(item.original_price) > Number(item.price) && (
+                          <span className="text-sm text-brand-gray-400 line-through">
+                            {formatPrice(item.original_price * item.quantity)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

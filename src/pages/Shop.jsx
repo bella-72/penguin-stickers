@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Search, SlidersHorizontal, Grid3X3, LayoutList } from 'lucide-react'
+import { Search, SlidersHorizontal, Grid3X3, LayoutList, X } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { ProductCardSkeleton } from '@/components/ui/Skeleton'
 import { productsService } from '@/services/products'
@@ -23,6 +23,17 @@ const PRODUCTS_PER_PAGE = 24;
 
 const [currentPage, setCurrentPage] = useState(1);
   const isNew = searchParams.get('filter') === 'new'
+
+useEffect(() => {
+  if (!showFilters) return
+
+  const closeOnEscape = (event) => {
+    if (event.key === 'Escape') setShowFilters(false)
+  }
+
+  window.addEventListener('keydown', closeOnEscape)
+  return () => window.removeEventListener('keydown', closeOnEscape)
+}, [showFilters])
 
   const loadProducts = useCallback(async () => {
     
@@ -98,26 +109,26 @@ useEffect(() => {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-br from-mint-50 to-brand-light dark:from-brand-dark dark:to-[#0f0f1a] py-12 md:py-16">
+      <div className="bg-gradient-to-br from-mint-50 to-brand-light dark:from-brand-dark dark:to-[#0f0f1a] py-6 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-center"
           >
-            <h1 className="font-outfit text-4xl md:text-5xl font-bold text-brand-gray-900 dark:text-white mb-4">
+            <h1 className="font-outfit text-2xl md:text-5xl font-bold text-brand-gray-900 dark:text-white mb-2 md:mb-4">
               {isNew ? 'New Arrivals' : 'Shop All Stickers'}
             </h1>
-            <p className="text-brand-gray-500 dark:text-brand-gray-400 max-w-md mx-auto">
+            <p className="text-sm md:text-base text-brand-gray-500 dark:text-brand-gray-400 max-w-md mx-auto">
               Browse our collection of premium die-cut stickers. Waterproof, durable, and irresistibly cute.
             </p>
           </motion.div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
         {/* Search & Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-3 md:gap-4 mb-5 md:mb-8">
           <div className="flex-1 relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-gray-400" />
             <input
@@ -129,11 +140,11 @@ useEffect(() => {
             />
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 md:gap-3">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2.5 bg-white dark:bg-brand-dark border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
+              className="min-w-0 flex-1 md:flex-none px-3 md:px-4 py-2.5 bg-white dark:bg-brand-dark border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl text-sm focus:ring-2 focus:ring-brand-primary/20 transition-all"
             >
               <option value="newest">Newest</option>
               <option value="price_asc">Price: Low → High</option>
@@ -142,12 +153,12 @@ useEffect(() => {
             </select>
 
             <button
-              onClick={() => setShowFilters(!showFilters)}
-              className={`md:hidden px-3 py-2.5 rounded-xl border transition-all ${
-                showFilters ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white dark:bg-brand-dark border-brand-gray-200 dark:border-brand-gray-700'
-              }`}
+              onClick={() => setShowFilters(true)}
+              aria-label="Filter by category"
+              className="md:hidden inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border bg-white dark:bg-brand-dark border-brand-gray-200 dark:border-brand-gray-700 text-sm transition-all"
             >
               <SlidersHorizontal className="w-4 h-4" />
+              <span>Filter</span>
             </button>
 
             <div className="hidden md:flex bg-white dark:bg-brand-dark border border-brand-gray-200 dark:border-brand-gray-700 rounded-xl overflow-hidden">
@@ -169,7 +180,7 @@ useEffect(() => {
 
         <div className="flex gap-8">
           {/* Categories Sidebar */}
-          <aside className={`${showFilters ? 'block' : 'hidden'} md:block w-full md:w-56 shrink-0`}>
+          <aside className="hidden md:block w-full md:w-56 shrink-0">
             <div className="bg-white dark:bg-brand-dark rounded-2xl p-4 shadow-card sticky top-28">
               <h3 className="font-outfit font-semibold text-sm mb-3 text-brand-gray-800 dark:text-white">Categories</h3>
               <div className="space-y-1">
@@ -275,6 +286,63 @@ useEffect(() => {
           </div>
         </div>
       </div>
+
+      {showFilters && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/40 md:hidden"
+          onClick={() => setShowFilters(false)}
+          role="presentation"
+        >
+          <aside
+            className="absolute right-0 top-0 flex h-full w-[min(84vw,20rem)] flex-col bg-white shadow-xl dark:bg-brand-dark"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-category-filter-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-brand-gray-100 px-5 py-4 dark:border-brand-gray-700">
+              <h2 id="mobile-category-filter-title" className="font-outfit text-lg font-semibold text-brand-gray-800 dark:text-white">
+                Categories
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowFilters(false)}
+                aria-label="Close category filters"
+                className="rounded-lg p-2 text-brand-gray-500 transition-colors hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-1">
+                <button
+                  onClick={() => { setSelectedCategory('all'); setShowFilters(false) }}
+                  className={`w-full text-left px-3 py-3 rounded-lg text-sm transition-all ${
+                    selectedCategory === 'all' ? 'bg-brand-primary/10 text-brand-primary font-medium' : 'text-brand-gray-600 dark:text-brand-gray-400 hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800'
+                  }`}
+                >
+                  All Stickers
+                </button>
+                {categoriesLoading ? (
+                  <div className="px-3 py-3 text-sm text-brand-gray-500 dark:text-brand-gray-400">Loading categories...</div>
+                ) : (
+                  categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => { setSelectedCategory(cat.id); setShowFilters(false) }}
+                      className={`w-full text-left px-3 py-3 rounded-lg text-sm transition-all ${
+                        selectedCategory === cat.id ? 'bg-brand-primary/10 text-brand-primary font-medium' : 'text-brand-gray-600 dark:text-brand-gray-400 hover:bg-brand-gray-50 dark:hover:bg-brand-gray-800'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   )
 }

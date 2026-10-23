@@ -151,44 +151,44 @@ const ProductCard = ({ product, index = 0 }) => {
           </button>
         </div>
 
-        <div className="p-4">
+        <div className="p-2 sm:p-4">
 
-          <p className="text-xs uppercase tracking-wider text-gray-400 mb-3">
+          <p className="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 mb-2 sm:mb-3">
             {product.categories?.name || "Sticker"}
           </p>
 
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-brand-primary text-lg">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 sm:gap-x-2">
+              <span className="font-bold text-brand-primary text-sm sm:text-lg">
                 {formatPrice(product.price)}
               </span>
 
               {hasOriginalPrice && (
-                <span className="line-through text-sm text-gray-400">
+                <span className="line-through text-xs sm:text-sm text-gray-400">
                   {formatPrice(product.original_price)}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
 
-           <div className="flex items-center border rounded-full p-1 flex-shrink-0">
+           <div className="flex items-center border rounded-full p-0.5 sm:p-1 flex-shrink-0">
 
               <button
                 onClick={(e) => handleQuantityChange(-1, e)}
-                className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center"
+                className="w-[22px] h-7 sm:w-8 sm:h-8 flex items-center justify-center"
               >
                 <Minus size={14} />
               </button>
 
-              <span className="w-6 md:w-8 text-center text-sm">
+              <span className="w-4 sm:w-8 text-center text-xs sm:text-sm">
                 {quantity}
               </span>
 
               <button
                 onClick={(e) => handleQuantityChange(1, e)}
-                className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center"
+                className="w-[22px] h-7 sm:w-8 sm:h-8 flex items-center justify-center"
               >
                 <Plus size={14} />
               </button>
@@ -197,7 +197,7 @@ const ProductCard = ({ product, index = 0 }) => {
 
           <button
   onClick={handleAddToCart}
-  className="flex-1 flex items-center justify-center gap-1 bg-brand-primary text-white rounded-full py-2 px-3 text-sm font-medium"
+  className="min-w-0 flex-1 flex items-center justify-center gap-1 bg-brand-primary text-white rounded-full py-2 px-1.5 sm:px-3 text-xs sm:text-sm font-medium"
 >
   <ShoppingCart size={15} />
   <span>Add</span>

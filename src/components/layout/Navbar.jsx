@@ -50,13 +50,13 @@ const Navbar = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center justify-between h-14 md:h-20">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="w-9 h-9 rounded-full bg-gradient-mint flex items-center justify-center shadow-mint group-hover:shadow-mint-lg transition-shadow overflow-hidden">
+            <Link to="/" className="flex items-center gap-1.5 md:gap-2 group">
+              <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gradient-mint flex items-center justify-center shadow-mint group-hover:shadow-mint-lg transition-shadow overflow-hidden">
                 <img src="/7665.png" alt="Penguin Stick Logo" className="w-full h-full object-cover rounded-full" />
               </div>
-              <span className="font-outfit font-bold text-xl text-brand-primary">
+              <span className="font-outfit font-bold text-base md:text-xl text-brand-primary">
                 Penguin Stick
               </span>
             </Link>
@@ -82,10 +82,10 @@ const Navbar = () => {
             </div>
 
             {/* Right Icons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 md:gap-2">
               <button
                 onClick={toggleDarkMode}
-                className="p-2 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
+                className="p-1.5 md:p-2 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
                 aria-label="Toggle dark mode"
               >
                 {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-brand-gray-500" />}
@@ -93,7 +93,7 @@ const Navbar = () => {
 
               <Link
                 to="/cart"
-                className="relative p-2 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
+                className="relative p-1.5 md:p-2 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
               >
                 <ShoppingCart className="w-5 h-5 text-brand-gray-600 dark:text-brand-gray-300" />
                 {itemCount > 0 && (
@@ -111,7 +111,7 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => user ? setUserMenuOpen(!userMenuOpen) : navigate('/login')}
-                  className="p-2 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
+                  className="p-1.5 md:p-2 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
                 >
                   <User className="w-5 h-5 text-brand-gray-600 dark:text-brand-gray-300" />
                 </button>
@@ -157,7 +157,7 @@ const Navbar = () => {
               {/* Mobile Menu Toggle */}
               <button
                 onClick={toggleMobileMenu}
-                className="md:hidden p-2 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
+                className="md:hidden p-1.5 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>

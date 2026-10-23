@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/Input'
 import { useCartStore } from '@/store/cartStore'
 import { ordersService } from '@/services/orders'
 import { storageService } from '@/services/api'
-import { formatPrice, governorates } from '@/utils/helpers'
+import { productsService } from '@/services/products'
+import { formatPrice, getShippingRate, governorates } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { discountCodesService } from "@/services/discountCodes";
@@ -23,7 +24,7 @@ const normalizePaymentMethod = (value) => {
 const Checkout = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { items, getSubtotal, getShipping, getTotal, clearCart, setGovernorate } = useCartStore()
+  const { items, getSubtotal, getShipping, getTotal, clearCart, setGovernorate, syncProductPrices } = useCartStore()
   const [loading, setLoading] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cod')
@@ -51,6 +52,19 @@ const paymentMethods = [
   const [couponLoading, setCouponLoading] = useState(false);
   const [successOrder, setSuccessOrder] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const productIds = items.map((item) => item.product_id || item.id).join(',')
+
+  useEffect(() => {
+    if (!productIds) return
+
+    productsService.getByIds(productIds.split(','))
+      .then(syncProductPrices)
+      .catch((error) => {
+        console.error('Failed to refresh checkout product prices:', error)
+        toast.error(error.message || 'Unable to refresh product prices.')
+      })
+  }, [productIds, syncProductPrices])
+
   const discount = coupon
     ? Math.round((getSubtotal() * coupon.discount_percent) / 100)
     : 0;
@@ -180,6 +194,20 @@ if (data.discount_percent <= 0) {
 
     try {
       const { data: { user } } = await supabase.auth.getUser()
+      const currentProducts = await productsService.getByIds(
+        items.map((item) => item.product_id || item.id)
+      )
+      const pricesById = new Map(currentProducts.map((product) => [product.id, Number(product.price)]))
+      const orderItems = items.map((item) => ({
+        product_id: item.product_id || item.id,
+        product_name: item.name,
+        product_image: item.image || null,
+        quantity: item.quantity,
+        price: pricesById.get(item.product_id || item.id) ?? item.price,
+        finish_type: item.finish_type || 'matte',
+      }))
+
+      syncProductPrices(currentProducts)
 
       let paymentProofUrl = null
 
@@ -189,9 +217,12 @@ if (data.discount_percent <= 0) {
       }
 
       console.log('PAYMENT IMAGE URL BEFORE ORDER:', paymentProofUrl)
-      const subtotal = getSubtotal();
-      const shipping = getShipping();
-      const total = subtotal + shipping - discount;
+      const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+      const shipping = subtotal >= 500 ? 0 : getShippingRate(form.governorate)
+      const discountAmount = coupon
+        ? Math.round((subtotal * coupon.discount_percent) / 100)
+        : 0
+      const total = subtotal + shipping - discountAmount
 
       const orderPayload = {
         user_id: user?.id ?? null,
@@ -206,17 +237,10 @@ if (data.discount_percent <= 0) {
        shipping,
 discount_code: coupon?.code ?? null,
 discount_percent: coupon?.discount_percent ?? 0,
-discount_amount: discount,
+discount_amount: discountAmount,
 total,
 status: 'pending',
-        items: items.map(item => ({
-          product_id: item.product_id || item.id,
-          product_name: item.name,
-          product_image: item.image || null,
-          quantity: item.quantity,
-          price: item.price,
-          finish_type: item.finish_type || 'matte',
-        })),
+        items: orderItems,
       }
 
       console.log(orderPayload)

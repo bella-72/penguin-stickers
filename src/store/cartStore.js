@@ -33,6 +33,7 @@ export const useCartStore = create(
               product,
               name: product.name,
               price: product.price,
+              original_price: product.original_price ?? null,
               image: product.images?.[0] || product.image || '',
               quantity,
               finish_type: finishType,
@@ -65,6 +66,24 @@ export const useCartStore = create(
       },
 
       clearCart: () => set({ items: [] }),
+
+      syncProductPrices: (products) => {
+        const pricesById = new Map(products.map((product) => [
+          product.id,
+          { price: Number(product.price), original_price: product.original_price },
+        ]))
+        set((state) => ({
+          items: state.items.map((item) => {
+            const productPrices = pricesById.get(item.product_id || item.id)
+            if (productPrices === undefined) return item
+            return {
+              ...item,
+              ...productPrices,
+              product: item.product ? { ...item.product, ...productPrices } : item.product,
+            }
+          }),
+        }))
+      },
 
       getSubtotal: () => {
         return get().items.reduce((sum, item) => sum + item.price * item.quantity, 0)

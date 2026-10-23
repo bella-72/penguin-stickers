@@ -1,7 +1,30 @@
 import { supabase } from '@/lib/supabase'
 import { demoCategories, demoProducts, normalizeProductId } from '@/utils/helpers'
 
+const isUuid = (value) =>
+  typeof value === 'string' &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+
 export const productsService = {
+  async getByIds(ids) {
+    const productIds = [...new Set(ids.filter(isUuid))]
+    if (productIds.length === 0) return []
+
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, price, original_price')
+      .in('id', productIds)
+
+    if (error) throw error
+
+    const products = data || []
+    if (products.length !== productIds.length) {
+      throw new Error('One or more products are no longer available. Please remove them from your cart.')
+    }
+
+    return products
+  },
+
   async getAll({ category, search, sort } = {}) {
     let query = supabase.from('products').select('*, categories(name)', { count: 'exact' })
 

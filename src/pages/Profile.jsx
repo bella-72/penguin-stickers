@@ -244,7 +244,12 @@ const Profile = () => {
                         <p className="text-xs uppercase tracking-wide text-brand-gray-400">{product?.categories?.name || 'Stickers'}</p>
                         <h3 className="font-outfit font-semibold text-brand-gray-800 dark:text-brand-gray-200">{product?.name || 'Product'}</h3>
                       </div>
-                      <div className="font-outfit font-bold text-brand-primary">{formatPrice(product?.price)}</div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-outfit font-bold text-brand-primary">{formatPrice(product?.price)}</span>
+                        {Number(product?.original_price) > Number(product?.price) && (
+                          <span className="text-sm text-brand-gray-400 line-through">{formatPrice(product.original_price)}</span>
+                        )}
+                      </div>
                       <div className="flex gap-2">
                         <Button size="sm" className="flex-1" onClick={() => handleAddWishlistProductToCart(product)}>
                           Add to Cart

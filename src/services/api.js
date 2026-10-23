@@ -98,7 +98,7 @@ export const wishlistService = {
   async get(userId) {
     const { data, error } = await supabase
       .from('wishlist')
-      .select('id, product_id, products(id, name, price, images, image, category_id, categories(name))')
+      .select('id, product_id, products(id, name, price, original_price, images, image, category_id, categories(name))')
       .eq('user_id', userId)
       .order('id', { ascending: false })
 
