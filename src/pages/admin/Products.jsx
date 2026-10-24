@@ -340,11 +340,11 @@ const AdminProducts = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#141428] rounded-2xl p-6 max-w-2xl w-full border border-white/10"
+            className="bg-[#141428] rounded-2xl p-6 max-w-2xl w-full max-h-[calc(100dvh-2rem)] min-h-0 flex flex-col overflow-hidden border border-white/10"
           >
-            <h2 className="text-2xl font-bold mb-6">{editingId ? 'Edit Product' : 'Add Product'}</h2>
+            <h2 className="text-2xl font-bold mb-6 shrink-0">{editingId ? 'Edit Product' : 'Add Product'}</h2>
 
-            <form onSubmit={handleAddProduct} className="space-y-4">
+            <form onSubmit={handleAddProduct} className="min-h-0 overflow-y-auto space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-gray-400 mb-2">Product Name</label>
