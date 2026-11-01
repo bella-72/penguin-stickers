@@ -231,7 +231,7 @@ export const adminProductsService = {
   async create(product) {
     const { data, error } = await supabase
       .from('products')
-      .insert(product)
+      .insert({ ...product, is_new: false })
       .select()
       .single()
     if (error) throw error

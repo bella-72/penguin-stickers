@@ -124,12 +124,6 @@ const ProductCard = ({ product, index = 0 }) => {
           />
 
           <div className="absolute top-3 left-3 flex flex-col gap-2">
-            {product.is_new && (
-              <span className="px-2.5 py-1 rounded-full text-xs bg-brand-primary text-white">
-                NEW
-              </span>
-            )}
-
             {hasOriginalPrice && discountPercent > 0 && (
               <span className="px-2.5 py-1 rounded-full text-xs bg-red-500 text-white">
                 -{discountPercent}%

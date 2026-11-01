@@ -98,7 +98,7 @@ async function main() {
 
                     is_featured: false,
 
-                    is_new: true
+                    is_new: false
 
                 });
 

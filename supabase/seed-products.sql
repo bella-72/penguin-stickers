@@ -87,7 +87,7 @@ VALUES
     4.9,
     89,
     true,
-    true
+    false
   ),
   (
     '33333333-3333-4333-8333-333333333333',
@@ -121,7 +121,7 @@ VALUES
     4.6,
     67,
     true,
-    true
+    false
   ),
   (
     '55555555-5555-4555-8555-555555555555',
@@ -172,7 +172,7 @@ VALUES
     4.8,
     145,
     false,
-    true
+    false
   ),
   (
     '88888888-8888-4888-8888-888888888888',
@@ -189,7 +189,7 @@ VALUES
     4.9,
     112,
     false,
-    true
+    false
   )
 ON CONFLICT (id) DO UPDATE
 SET name = EXCLUDED.name,

@@ -131,7 +131,7 @@ if (existingProduct) {
       rating: 5,
       review_count: 0,
       is_featured: false,
-      is_new: true,
+      is_new: false,
       finish_types: ["matte"],
       images: [publicUrl]
     });
