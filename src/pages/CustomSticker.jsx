@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/Input'
 import toast from 'react-hot-toast'
 import { useCartStore } from '@/store/cartStore'
 import { useNavigate } from 'react-router-dom'
+import { CUSTOM_STICKER_PRICE } from '@/utils/helpers'
 
 const CustomSticker = () => {
   const navigate = useNavigate()
@@ -20,7 +21,7 @@ const CustomSticker = () => {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  const pricePerSticker = 7
+  const pricePerSticker = CUSTOM_STICKER_PRICE
   const totalEstimate = (quantity * pricePerSticker).toFixed(2)
 
   const handleDrag = useCallback((e) => {

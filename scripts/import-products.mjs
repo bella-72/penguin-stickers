@@ -80,9 +80,9 @@ async function main() {
 
                     description: "",
 
-                    price: 7,
+                    price: 10,
 
-                    original_price: null,
+                    original_price: 15,
 
                     category_id: category.id,
 

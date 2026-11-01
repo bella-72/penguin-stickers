@@ -10,7 +10,7 @@ import { useCartStore } from '@/store/cartStore'
 import { ordersService } from '@/services/orders'
 import { storageService } from '@/services/api'
 import { productsService } from '@/services/products'
-import { formatPrice, getShippingRate, governorates } from '@/utils/helpers'
+import { CUSTOM_STICKER_PRICE, formatPrice, getShippingRate, governorates } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { discountCodesService } from "@/services/discountCodes";
@@ -203,7 +203,9 @@ if (data.discount_percent <= 0) {
         product_name: item.name,
         product_image: item.image || null,
         quantity: item.quantity,
-        price: pricesById.get(item.product_id || item.id) ?? item.price,
+        price: item.isCustom
+          ? CUSTOM_STICKER_PRICE
+          : (pricesById.get(item.product_id || item.id) ?? item.price),
         finish_type: item.finish_type || 'matte',
       }))
 
@@ -466,7 +468,14 @@ status: 'pending',
                         <p className="text-sm font-medium truncate">{item.name}</p>
                         <p className="text-xs text-brand-gray-400">x{item.quantity} • {item.finish_type}</p>
                       </div>
-                      <span className="text-sm font-medium">{formatPrice(item.price * item.quantity)}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="text-sm font-medium">{formatPrice(item.price * item.quantity)}</span>
+                        {Number(item.original_price) > Number(item.price) && (
+                          <span className="text-xs text-brand-gray-400 line-through">
+                            {formatPrice(item.original_price * item.quantity)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     
                   ))}

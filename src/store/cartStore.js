@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { getShippingRate } from '@/utils/helpers'
+import { CUSTOM_STICKER_PRICE, getShippingRate } from '@/utils/helpers'
 
 export const useCartStore = create(
   persist(
@@ -26,14 +26,19 @@ export const useCartStore = create(
               ),
             }
           }
+          const isCustom = Boolean(product.isCustom)
+          const price = isCustom ? CUSTOM_STICKER_PRICE : product.price
+          const cartProduct = isCustom ? { ...product, price } : product
+
           return {
             items: [...state.items, {
               id: product.id,
               product_id: product.id,
-              product,
+              product: cartProduct,
               name: product.name,
-              price: product.price,
-              original_price: product.original_price ?? null,
+              price,
+              original_price: isCustom ? null : (product.original_price ?? null),
+              isCustom,
               image: product.images?.[0] || product.image || '',
               quantity,
               finish_type: finishType,
@@ -110,6 +115,24 @@ export const useCartStore = create(
     }),
     {
       name: 'penguin-cart',
+      version: 2,
+      migrate: (persistedState) => ({
+        ...persistedState,
+        items: (persistedState.items || []).map((item) => {
+          const isCustom = item.isCustom || item.product?.isCustom || item.id?.startsWith('custom-')
+          if (!isCustom) return item
+
+          return {
+            ...item,
+            price: CUSTOM_STICKER_PRICE,
+            original_price: null,
+            isCustom: true,
+            product: item.product
+              ? { ...item.product, price: CUSTOM_STICKER_PRICE }
+              : item.product,
+          }
+        }),
+      }),
     }
   )
 )
