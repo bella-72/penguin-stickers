@@ -75,6 +75,7 @@ export const shippingRates = {
   Luxor: 115,
   'Red Sea': 115,
   Qena: 115,
+  Sohag: 115,
   
   // 125 EGP Governorates
   'New Valley': 125,
