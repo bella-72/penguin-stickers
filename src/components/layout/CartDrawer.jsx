@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Gift, Minus, Plus, ShoppingCart, Trash2, Truck, X } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
@@ -8,6 +8,7 @@ import { getStickerBundleProgress } from '@/utils/stickerBundles'
 
 const CartDrawer = ({ isOpen, onClose }) => {
   const navigate = useNavigate()
+  const location = useLocation()
   const items = useCartStore((state) => state.items)
   const selectedGovernorate = useCartStore((state) => state.selectedGovernorate)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
@@ -22,8 +23,8 @@ const CartDrawer = ({ isOpen, onClose }) => {
   const giftsOverAllowance = freeGiftCount > freeGiftAllowance
 
   const goToCheckout = () => {
-    navigate('/checkout')
     onClose()
+    navigate('/checkout')
   }
 
   useEffect(() => {
@@ -36,6 +37,8 @@ const CartDrawer = ({ isOpen, onClose }) => {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
+
+  if (location.pathname === '/checkout') return null
 
   return (
     <AnimatePresence>
@@ -59,18 +62,18 @@ const CartDrawer = ({ isOpen, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'tween', duration: 0.22, ease: 'easeOut' }}
-            className="fixed inset-y-0 right-0 z-[61] flex h-[100dvh] w-full flex-col bg-white shadow-2xl dark:bg-brand-dark sm:w-[min(26rem,92vw)]"
+            className="fixed inset-y-0 right-0 z-[61] flex h-[100dvh] w-1/2 flex-col bg-white shadow-2xl dark:bg-brand-dark sm:w-[min(26rem,92vw)]"
           >
-            <header className="flex shrink-0 items-center justify-between border-b border-brand-gray-100 px-4 py-4 dark:border-brand-gray-700 sm:px-6">
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
-                  <ShoppingCart className="h-5 w-5" />
+            <header className="flex shrink-0 items-center justify-between border-b border-brand-gray-100 px-2 py-3 dark:border-brand-gray-700 sm:px-6 sm:py-4">
+              <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary sm:h-10 sm:w-10">
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
                 </span>
-                <div>
-                  <h2 id="cart-drawer-title" className="font-outfit text-lg font-bold text-brand-gray-900 dark:text-white">
+                <div className="min-w-0">
+                  <h2 id="cart-drawer-title" className="truncate font-outfit text-sm font-bold text-brand-gray-900 dark:text-white sm:text-lg">
                     Your Cart
                   </h2>
-                  <p className="text-xs text-brand-gray-500 dark:text-brand-gray-400">
+                  <p className="text-[10px] text-brand-gray-500 dark:text-brand-gray-400 sm:text-xs">
                     {items.length} {items.length === 1 ? 'item' : 'items'}
                   </p>
                 </div>
@@ -79,9 +82,9 @@ const CartDrawer = ({ isOpen, onClose }) => {
                 type="button"
                 onClick={onClose}
                 aria-label="Close cart"
-                className="flex h-10 w-10 items-center justify-center rounded-full text-brand-gray-500 transition hover:bg-brand-gray-100 dark:text-brand-gray-300 dark:hover:bg-brand-gray-800"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-brand-gray-500 transition hover:bg-brand-gray-100 dark:text-brand-gray-300 dark:hover:bg-brand-gray-800 sm:h-10 sm:w-10"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
             </header>
 
@@ -102,8 +105,8 @@ const CartDrawer = ({ isOpen, onClose }) => {
               </div>
             ) : (
               <>
-                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4 sm:px-6">
-                  <section className="rounded-xl border border-brand-primary/15 bg-brand-primary/5 px-3 py-2.5 dark:bg-brand-primary/10">
+                <div className="min-h-0 flex-1 space-y-2 overflow-y-auto px-2 py-3 sm:space-y-3 sm:px-6 sm:py-4">
+                  <section className="rounded-xl border border-brand-primary/15 bg-brand-primary/5 px-2 py-2.5 dark:bg-brand-primary/10 sm:px-3">
                     <div className="flex items-start gap-2">
                       <Gift className="mt-0.5 h-4 w-4 shrink-0 text-brand-primary" />
                       <div className="min-w-0 flex-1">
@@ -149,20 +152,20 @@ const CartDrawer = ({ isOpen, onClose }) => {
                     return (
                       <article
                         key={`${item.id}-${item.finish_type}-${isFreeGift ? 'gift' : 'paid'}`}
-                        className="flex gap-3 rounded-2xl border border-brand-gray-100 bg-white p-3 dark:border-brand-gray-700 dark:bg-white/5"
+                        className="flex gap-2 rounded-2xl border border-brand-gray-100 bg-white p-2 dark:border-brand-gray-700 dark:bg-white/5 sm:gap-3 sm:p-3"
                       >
                         <img
                           src={image}
                           alt={name}
-                          className="h-[4.5rem] w-[4.5rem] shrink-0 rounded-xl bg-brand-gray-50 object-cover dark:bg-brand-gray-800"
+                          className="h-10 w-10 shrink-0 rounded-xl bg-brand-gray-50 object-cover dark:bg-brand-gray-800 sm:h-[4.5rem] sm:w-[4.5rem]"
                           onError={(event) => {
                             event.currentTarget.src = '/stickers/placeholder.webp'
                           }}
                         />
                         <div className="min-w-0 flex-1">
-                          <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start justify-between gap-1 sm:gap-2">
                             <div className="min-w-0">
-                              <h3 className="truncate text-sm font-semibold text-brand-gray-800 dark:text-white">{name}</h3>
+                              <h3 className="truncate text-xs font-semibold text-brand-gray-800 dark:text-white sm:text-sm">{name}</h3>
                               {item.finish_type && (
                                 <p className="mt-0.5 text-xs capitalize text-brand-gray-500 dark:text-brand-gray-400">
                                   {item.finish_type}
@@ -173,9 +176,9 @@ const CartDrawer = ({ isOpen, onClose }) => {
                               type="button"
                               onClick={() => removeItem(item.id, item.finish_type, isFreeGift)}
                               aria-label={`Remove ${name}`}
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-brand-gray-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20"
+                              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-brand-gray-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20 sm:h-8 sm:w-8"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </button>
                           </div>
                           <div className="mt-2 flex items-end justify-between gap-2">
@@ -193,21 +196,21 @@ const CartDrawer = ({ isOpen, onClose }) => {
                                 </>
                               )}
                             </div>
-                            <div className="flex h-9 items-center rounded-full bg-brand-gray-50 p-0.5 dark:bg-brand-gray-800">
+                            <div className="flex h-8 items-center rounded-full bg-brand-gray-50 p-0.5 dark:bg-brand-gray-800 sm:h-9">
                               <button
                                 type="button"
                                 onClick={() => updateQuantity(item.id, item.finish_type, item.quantity - 1, isFreeGift)}
                                 aria-label={`Decrease ${name} quantity`}
-                                className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-white dark:hover:bg-brand-gray-700"
+                                className="flex h-7 w-7 items-center justify-center rounded-full transition hover:bg-white dark:hover:bg-brand-gray-700 sm:h-8 sm:w-8"
                               >
                                 <Minus className="h-3.5 w-3.5" />
                               </button>
-                              <span className="w-7 text-center text-sm font-medium">{item.quantity}</span>
+                              <span className="w-5 text-center text-xs font-medium sm:w-7 sm:text-sm">{item.quantity}</span>
                               <button
                                 type="button"
                                 onClick={() => updateQuantity(item.id, item.finish_type, item.quantity + 1, isFreeGift)}
                                 aria-label={`Increase ${name} quantity`}
-                                className="flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-white dark:hover:bg-brand-gray-700"
+                                className="flex h-7 w-7 items-center justify-center rounded-full transition hover:bg-white dark:hover:bg-brand-gray-700 sm:h-8 sm:w-8"
                               >
                                 <Plus className="h-3.5 w-3.5" />
                               </button>
@@ -219,8 +222,8 @@ const CartDrawer = ({ isOpen, onClose }) => {
                   })}
                 </div>
 
-                <footer className="shrink-0 border-t border-brand-gray-100 bg-white px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 dark:border-brand-gray-700 dark:bg-brand-dark sm:px-6">
-                  <div className="space-y-2.5 text-sm">
+                <footer className="shrink-0 border-t border-brand-gray-100 bg-white px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 dark:border-brand-gray-700 dark:bg-brand-dark sm:px-6 sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-4">
+                  <div className="space-y-2 text-xs sm:space-y-2.5 sm:text-sm">
                     <div className="flex justify-between text-brand-gray-600 dark:text-brand-gray-300">
                       <span>Subtotal</span>
                       <span>{formatPrice(subtotal)}</span>
@@ -237,7 +240,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                               : 'At checkout'}
                       </span>
                     </div>
-                    <div className="flex justify-between border-t border-brand-gray-100 pt-3 text-base font-bold text-brand-gray-900 dark:border-brand-gray-700 dark:text-white">
+                    <div className="flex justify-between border-t border-brand-gray-100 pt-2 text-sm font-bold text-brand-gray-900 dark:border-brand-gray-700 dark:text-white sm:pt-3 sm:text-base">
                       <span>Total</span>
                       <span className="text-brand-primary">{formatPrice(total)}</span>
                     </div>
@@ -246,7 +249,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                     <button
                       type="button"
                       disabled
-                      className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-mint px-5 text-sm font-semibold text-white shadow-mint transition hover:shadow-mint-lg disabled:cursor-not-allowed disabled:opacity-50"
+                      className="mt-3 flex min-h-10 w-full items-center justify-center gap-1 rounded-full bg-gradient-mint px-2 text-xs font-semibold text-white shadow-mint transition hover:shadow-mint-lg disabled:cursor-not-allowed disabled:opacity-50 sm:mt-4 sm:min-h-12 sm:gap-2 sm:px-5 sm:text-sm"
                     >
                       Checkout <ArrowRight className="h-4 w-4" />
                     </button>
@@ -254,7 +257,7 @@ const CartDrawer = ({ isOpen, onClose }) => {
                     <button
                       type="button"
                       onClick={goToCheckout}
-                      className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-mint px-5 text-sm font-semibold text-white shadow-mint transition hover:shadow-mint-lg"
+                      className="mt-3 flex min-h-10 w-full items-center justify-center gap-1 rounded-full bg-gradient-mint px-2 text-xs font-semibold text-white shadow-mint transition hover:shadow-mint-lg sm:mt-4 sm:min-h-12 sm:gap-2 sm:px-5 sm:text-sm"
                     >
                       Checkout <ArrowRight className="h-4 w-4" />
                     </button>
