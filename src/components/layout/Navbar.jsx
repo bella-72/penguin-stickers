@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingCart, User, Menu, X, Moon, Sun, Heart, LogOut, LayoutDashboard } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { useUIStore } from '@/store/uiStore'
+import CartDrawer from '@/components/layout/CartDrawer'
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
+  const closeCart = useCallback(() => setCartOpen(false), [])
   const location = useLocation()
   const navigate = useNavigate()
   const itemCount = useCartStore((s) => s.getItemCount())
@@ -31,6 +34,7 @@ const Navbar = () => {
   useEffect(() => {
     closeMobileMenu()
     setUserMenuOpen(false)
+    setCartOpen(false)
   }, [location.pathname])
 
   const handleSignOut = async () => {
@@ -91,8 +95,13 @@ const Navbar = () => {
                 {darkMode ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-brand-gray-500" />}
               </button>
 
-              <Link
-                to="/cart"
+              <button
+                type="button"
+                onClick={() => {
+                  closeMobileMenu()
+                  setCartOpen(true)
+                }}
+                aria-label={`Open cart${itemCount > 0 ? `, ${itemCount} items` : ''}`}
                 className="relative p-1.5 md:p-2 rounded-xl hover:bg-brand-gray-100 dark:hover:bg-brand-gray-800 transition-colors"
               >
                 <ShoppingCart className="w-5 h-5 text-brand-gray-600 dark:text-brand-gray-300" />
@@ -105,7 +114,7 @@ const Navbar = () => {
                     {itemCount}
                   </motion.span>
                 )}
-              </Link>
+              </button>
 
               {/* User Menu */}
               <div className="relative">
@@ -165,6 +174,8 @@ const Navbar = () => {
           </div>
         </div>
       </motion.nav>
+
+      <CartDrawer isOpen={cartOpen} onClose={closeCart} />
 
       {/* Mobile Menu */}
       <AnimatePresence>

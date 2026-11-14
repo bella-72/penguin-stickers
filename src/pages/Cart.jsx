@@ -13,6 +13,10 @@ import toast from 'react-hot-toast'
 const Cart = () => {
   const { t } = useTranslation()
   const { items, updateQuantity, removeItem, getSubtotal, getShipping, getTotal, syncProductPrices } = useCartStore()
+  const paidStickerCount = useCartStore((state) => state.getPaidStickerCount())
+  const freeGiftCount = useCartStore((state) => state.getFreeStickerCount())
+  const freeGiftAllowance = useCartStore((state) => state.getFreeStickerAllowance())
+  const giftsOverAllowance = freeGiftCount > freeGiftAllowance
   const productIds = items.map((item) => item.product_id || item.id).join(',')
 
   useEffect(() => {
@@ -64,7 +68,7 @@ const Cart = () => {
             <AnimatePresence>
               {items.map((item) => (
                 <motion.div
-                  key={`${item.id}-${item.finish_type}`}
+                  key={`${item.id}-${item.finish_type}-${item.is_free_gift ? 'gift' : 'paid'}`}
                   layout
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -86,21 +90,21 @@ const Cart = () => {
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-brand-gray-400 capitalize mt-0.5">
-                      {item.category} 
+                      {item.is_free_gift ? 'FREE STICKER' : item.category}
                     </p>
 
                     <div className="flex items-center justify-between mt-3">
                       {/* Quantity */}
                       <div className="flex items-center gap-1 bg-brand-gray-50 dark:bg-brand-gray-800 rounded-full p-0.5">
                         <button
-                          onClick={() => updateQuantity(item.id, item.finish_type, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, item.finish_type, item.quantity - 1, Boolean(item.is_free_gift))}
                           className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-brand-gray-700 transition-colors"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
                         <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.finish_type, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id, item.finish_type, item.quantity + 1, Boolean(item.is_free_gift))}
                           className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-brand-gray-700 transition-colors"
                         >
                           <Plus className="w-3 h-3" />
@@ -110,7 +114,7 @@ const Cart = () => {
                       {/* Price */}
                       <div className="flex flex-col items-end">
                         <span className="font-outfit font-bold text-brand-primary">
-                          {formatPrice(item.price * item.quantity)}
+                          {item.is_free_gift ? 'FREE' : formatPrice(item.price * item.quantity)}
                         </span>
                         {Number(item.original_price) > Number(item.price) && (
                           <span className="text-sm text-brand-gray-400 line-through">
@@ -123,7 +127,7 @@ const Cart = () => {
 
                   {/* Remove */}
                   <button
-                    onClick={() => removeItem(item.id, item.finish_type)}
+                    onClick={() => removeItem(item.id, item.finish_type, Boolean(item.is_free_gift))}
                     className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 text-brand-gray-400 hover:text-red-500 transition-colors shrink-0"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -153,24 +157,36 @@ const Cart = () => {
                 </div>
               </div>
 
-              <Link to="/checkout" className="block mt-6">
-                <Button className="w-full" size="lg" iconRight={ArrowRight}>
+              {giftsOverAllowance ? (
+                <Button className="mt-6 w-full" size="lg" disabled>
                   {t('checkout')}
                 </Button>
-              </Link>
+              ) : (
+                <Link to="/checkout" className="mt-6 block">
+                  <Button className="w-full" size="lg" iconRight={ArrowRight}>
+                    {t('checkout')}
+                  </Button>
+                </Link>
+              )}
+
+              {giftsOverAllowance && (
+                <p role="alert" className="mt-3 text-xs font-medium text-red-600 dark:text-red-400">
+                  Your cart now qualifies for {freeGiftAllowance} free stickers, but {freeGiftCount} are selected. Remove {freeGiftCount - freeGiftAllowance} extra before checkout.
+                </p>
+              )}
 
               <p className="text-xs text-center text-brand-gray-400 mt-3">
                 Secure checkout by Penguin Stick SSL
               </p>
 
-              {subtotal >= 500 && (
+              {subtotal >= 500 || paidStickerCount >= 50 ? (
   <div className="mt-4 p-3 rounded-xl bg-mint-50 dark:bg-mint-900/20 flex items-center gap-2">
     <Truck className="w-4 h-4 text-brand-primary shrink-0" />
     <p className="text-xs text-brand-primary">
       {t('common.free_shipping')} {t('checkout.free_shipping')}!
     </p>
   </div>
-)}
+) : null}
             </div>
           </div>
         </div>

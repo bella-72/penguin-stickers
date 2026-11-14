@@ -6,6 +6,7 @@ import Input from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Input'
 import toast from 'react-hot-toast'
 import { useCartStore } from '@/store/cartStore'
+import { customStickersService } from '@/services/api'
 import { useNavigate } from 'react-router-dom'
 import { CUSTOM_STICKER_PRICE } from '@/utils/helpers'
 
@@ -55,9 +56,13 @@ const CustomSticker = () => {
     setLoading(true)
     
     try {
-      // Create a custom sticker product object
+      const customItemId = await customStickersService.createCartItem({
+        name: stickerName,
+        image: preview,
+      })
+
       const customProduct = {
-        id: `custom-${Date.now()}`,
+        id: customItemId,
         name: stickerName,
         price: pricePerSticker,
         image: preview,

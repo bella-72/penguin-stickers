@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Heart, ShoppingCart, Minus, Plus } from 'lucide-react'
+import { Heart, ShoppingCart, Minus, Plus, Gift } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { wishlistService } from '@/services/api'
@@ -13,7 +13,11 @@ const ProductCard = ({ product, index = 0 }) => {
   const [quantity, setQuantity] = useState(1)
 
   const addItem = useCartStore((s) => s.addItem)
+  const addFreeGift = useCartStore((s) => s.addFreeGift)
+  const freeGiftCount = useCartStore((s) => s.getFreeStickerCount())
+  const freeGiftAllowance = useCartStore((s) => s.getFreeStickerAllowance())
   const user = useAuthStore((s) => s.user)
+  const canAddGift = freeGiftCount < freeGiftAllowance
 
   const handleQuantityChange = (delta, e) => {
     e.preventDefault()
@@ -36,6 +40,19 @@ const ProductCard = ({ product, index = 0 }) => {
         boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
       },
     })
+  }
+
+  const handleAddAsFreeGift = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (freeGiftCount >= freeGiftAllowance) {
+      toast.error('You have selected all eligible free stickers.')
+      return
+    }
+
+    addFreeGift(product)
+    toast.success(`${product.name} added as a free gift!`, { icon: '🎁' })
   }
 
   useEffect(() => {
@@ -123,9 +140,9 @@ const ProductCard = ({ product, index = 0 }) => {
             }}
           />
 
-          <div className="absolute top-3 left-3 flex flex-col gap-2">
+          <div className="absolute left-2 top-2 flex flex-col gap-2 sm:left-3 sm:top-3">
             {hasOriginalPrice && discountPercent > 0 && (
-              <span className="px-2.5 py-1 rounded-full text-xs bg-red-500 text-white">
+              <span className="rounded-full bg-red-500 px-2 py-1 text-[10px] text-white sm:px-2.5 sm:text-xs">
                 -{discountPercent}%
               </span>
             )}
@@ -133,7 +150,8 @@ const ProductCard = ({ product, index = 0 }) => {
 
           <button
             onClick={handleWishlist}
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/80 backdrop-blur flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 opacity-100 backdrop-blur transition sm:right-3 sm:top-3 sm:opacity-0 sm:group-hover:opacity-100"
           >
             <Heart
               className={`w-4 h-4 ${
@@ -145,15 +163,15 @@ const ProductCard = ({ product, index = 0 }) => {
           </button>
         </div>
 
-        <div className="p-2 sm:p-4">
+        <div className="p-2.5 sm:p-4">
 
-          <p className="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400 mb-2 sm:mb-3">
+          <p className="mb-1.5 text-[9px] uppercase tracking-wider text-gray-400 sm:mb-3 sm:text-xs">
             {product.categories?.name || "Sticker"}
           </p>
 
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <div className="mb-2 flex items-center justify-between sm:mb-4">
             <div className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 sm:gap-x-2">
-              <span className="font-bold text-brand-primary text-sm sm:text-lg">
+              <span className="text-sm font-bold text-brand-primary sm:text-lg">
                 {formatPrice(product.price)}
               </span>
 
@@ -171,18 +189,18 @@ const ProductCard = ({ product, index = 0 }) => {
 
               <button
                 onClick={(e) => handleQuantityChange(-1, e)}
-                className="w-[22px] h-7 sm:w-8 sm:h-8 flex items-center justify-center"
+                className="flex h-8 w-8 items-center justify-center"
               >
                 <Minus size={14} />
               </button>
 
-              <span className="w-4 sm:w-8 text-center text-xs sm:text-sm">
+              <span               className="w-5 text-center text-xs sm:w-8 sm:text-sm">
                 {quantity}
               </span>
 
               <button
                 onClick={(e) => handleQuantityChange(1, e)}
-                className="w-[22px] h-7 sm:w-8 sm:h-8 flex items-center justify-center"
+                className="flex h-8 w-8 items-center justify-center"
               >
                 <Plus size={14} />
               </button>
@@ -191,13 +209,23 @@ const ProductCard = ({ product, index = 0 }) => {
 
           <button
   onClick={handleAddToCart}
-  className="min-w-0 flex-1 flex items-center justify-center gap-1 bg-brand-primary text-white rounded-full py-2 px-1.5 sm:px-3 text-xs sm:text-sm font-medium"
+  className="min-h-9 min-w-0 flex-1 flex items-center justify-center gap-1 rounded-full bg-brand-primary px-1.5 py-2 text-[11px] font-medium text-white sm:px-3 sm:text-sm"
 >
-  <ShoppingCart size={15} />
+  <ShoppingCart size={14} />
   <span>Add</span>
 </button>
 
           </div>
+          {canAddGift && (
+            <button
+              type="button"
+              onClick={handleAddAsFreeGift}
+              className="mt-2 flex min-h-8 w-full items-center justify-center gap-1 rounded-full border border-brand-primary/30 px-2 py-1.5 text-[10px] font-semibold text-brand-primary transition hover:bg-brand-primary/5 sm:text-xs"
+            >
+              <Gift size={13} />
+              Add as Free Gift
+            </button>
+          )}
 
         </div>
       </div>

@@ -1,6 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { CUSTOM_STICKER_PRICE, getShippingRate } from '@/utils/helpers'
+import {
+  canAddFreeSticker,
+  countFreeStickerUnits,
+  countPaidStickerUnits,
+  getFreeStickerAllowance,
+  hasBundleFreeShipping,
+} from '@/utils/stickerBundles'
 
 export const useCartStore = create(
   persist(
@@ -15,12 +22,12 @@ export const useCartStore = create(
       addItem: (product, quantity = 1, finishType = 'matte') => {
         set((state) => {
           const existing = state.items.find(
-            (item) => item.id === product.id && item.finish_type === finishType
+            (item) => item.id === product.id && item.finish_type === finishType && !item.is_free_gift
           )
           if (existing) {
             return {
               items: state.items.map((item) =>
-                item.id === product.id && item.finish_type === finishType
+                item.id === product.id && item.finish_type === finishType && !item.is_free_gift
                   ? { ...item, quantity: item.quantity + quantity }
                   : item
               ),
@@ -48,22 +55,66 @@ export const useCartStore = create(
         })
       },
 
-      removeItem: (id, finishType) => {
+      addFreeGift: (product, finishType = 'matte') => {
+        set((state) => {
+          const giftCount = countFreeStickerUnits(state.items)
+          const allowance = getFreeStickerAllowance(countPaidStickerUnits(state.items))
+          if (!canAddFreeSticker(giftCount, allowance)) return state
+
+          const existing = state.items.find(
+            (item) => item.id === product.id && item.finish_type === finishType && item.is_free_gift
+          )
+          if (existing) {
+            return {
+              items: state.items.map((item) =>
+                item === existing ? { ...item, quantity: item.quantity + 1 } : item
+              ),
+            }
+          }
+
+          return {
+            items: [...state.items, {
+              id: product.id,
+              product_id: product.id,
+              product,
+              name: product.name,
+              price: 0,
+              original_price: null,
+              isCustom: false,
+              is_free_gift: true,
+              image: product.images?.[0] || product.image || '',
+              quantity: 1,
+              finish_type: finishType,
+              category: product.categories?.name || '',
+            }],
+          }
+        })
+      },
+
+      removeItem: (id, finishType, isFreeGift = false) => {
         set((state) => ({
           items: state.items.filter(
-            (item) => !(item.id === id && item.finish_type === finishType)
+            (item) => !(item.id === id && item.finish_type === finishType && Boolean(item.is_free_gift) === isFreeGift)
           ),
         }))
       },
 
-      updateQuantity: (id, finishType, quantity) => {
+      updateQuantity: (id, finishType, quantity, isFreeGift = false) => {
         if (quantity <= 0) {
-          get().removeItem(id, finishType)
+          get().removeItem(id, finishType, isFreeGift)
           return
+        }
+        const item = get().items.find(
+          (entry) => entry.id === id && entry.finish_type === finishType && Boolean(entry.is_free_gift) === isFreeGift
+        )
+        if (isFreeGift) {
+          const otherGiftCount = countFreeStickerUnits(get().items) - (item?.quantity || 0)
+          const allowance = getFreeStickerAllowance(countPaidStickerUnits(get().items))
+          if (otherGiftCount + quantity > allowance) return
         }
         set((state) => ({
           items: state.items.map((item) =>
-            item.id === id && item.finish_type === finishType
+            item.id === id && item.finish_type === finishType && Boolean(item.is_free_gift) === isFreeGift
               ? { ...item, quantity }
               : item
           ),
@@ -79,6 +130,7 @@ export const useCartStore = create(
         ]))
         set((state) => ({
           items: state.items.map((item) => {
+            if (item.is_free_gift) return item
             const productPrices = pricesById.get(item.product_id || item.id)
             if (productPrices === undefined) return item
             return {
@@ -91,14 +143,15 @@ export const useCartStore = create(
       },
 
       getSubtotal: () => {
-        return get().items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+        return get().items.reduce((sum, item) => sum + (item.is_free_gift ? 0 : item.price * item.quantity), 0)
       },
 
       getShipping: () => {
         const subtotal = get().getSubtotal()
+        if (hasBundleFreeShipping(countPaidStickerUnits(get().items))) return 0
         // Free shipping for orders >= 500 EGP
         if (subtotal >= 500) return 0
-        
+
         const governorate = get().selectedGovernorate
         // Return 0 if no governorate selected yet
         if (!governorate) return 0
@@ -112,13 +165,25 @@ export const useCartStore = create(
       getItemCount: () => {
         return get().items.reduce((sum, item) => sum + item.quantity, 0)
       },
+
+      getPaidStickerCount: () => countPaidStickerUnits(get().items),
+      getFreeStickerCount: () => countFreeStickerUnits(get().items),
+      getFreeStickerAllowance: () => getFreeStickerAllowance(countPaidStickerUnits(get().items)),
     }),
     {
       name: 'penguin-cart',
-      version: 2,
+      version: 3,
       migrate: (persistedState) => ({
         ...persistedState,
         items: (persistedState.items || []).map((item) => {
+          if (item.is_free_gift) {
+            return {
+              ...item,
+              price: 0,
+              original_price: null,
+              isCustom: false,
+            }
+          }
           const isCustom = item.isCustom || item.product?.isCustom || item.id?.startsWith('custom-')
           if (!isCustom) return item
 

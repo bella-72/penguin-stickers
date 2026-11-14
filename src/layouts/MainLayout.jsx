@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import Navbar from '@/components/layout/Navbar'
 import Footer from '@/components/layout/Footer'
 import ShippingAnnouncement from '@/components/layout/ShippingAnnouncement'
-import CouponHelper from '@/components/CouponHelper'
+import OffersPopup from '@/components/OffersPopup'
 import { Toaster } from 'react-hot-toast'
 
 const MainLayout = () => {
@@ -32,7 +32,7 @@ const MainLayout = () => {
       >
         <Outlet />
       </motion.main>
-      <CouponHelper />
+      <OffersPopup />
       <Footer />
     </div>
   )

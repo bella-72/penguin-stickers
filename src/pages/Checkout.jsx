@@ -8,9 +8,9 @@ import Input from '@/components/ui/Input'
 import { Textarea } from '@/components/ui/Input'
 import { useCartStore } from '@/store/cartStore'
 import { ordersService } from '@/services/orders'
-import { storageService } from '@/services/api'
+import { customStickersService, storageService } from '@/services/api'
 import { productsService } from '@/services/products'
-import { CUSTOM_STICKER_PRICE, formatPrice, getShippingRate, governorates } from '@/utils/helpers'
+import { CUSTOM_STICKER_PRICE, formatPrice, governorates } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 import { supabase } from '@/lib/supabase'
 import { discountCodesService } from "@/services/discountCodes";
@@ -25,6 +25,9 @@ const Checkout = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { items, getSubtotal, getShipping, getTotal, clearCart, setGovernorate, syncProductPrices } = useCartStore()
+  const paidStickerCount = useCartStore((state) => state.getPaidStickerCount())
+  const freeGiftCount = useCartStore((state) => state.getFreeStickerCount())
+  const freeGiftAllowance = useCartStore((state) => state.getFreeStickerAllowance())
   const [loading, setLoading] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cod')
@@ -167,6 +170,14 @@ if (data.discount_percent <= 0) {
 };
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (freeGiftCount > freeGiftAllowance) {
+      toast.error(`Remove ${freeGiftCount - freeGiftAllowance} extra free sticker${freeGiftCount - freeGiftAllowance === 1 ? '' : 's'} before checkout.`)
+      return
+    }
+    if (paidStickerCount === 0) {
+      toast.error('Add at least one paid sticker before checkout.')
+      return
+    }
     if (!form.firstName || !form.fatherName || !form.lastName || !form.phone || !form.address) {
       toast.error('Please fill in all required fields')
       return
@@ -195,18 +206,33 @@ if (data.discount_percent <= 0) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       const currentProducts = await productsService.getByIds(
-        items.map((item) => item.product_id || item.id)
+        items.filter((item) => !item.isCustom).map((item) => item.product_id || item.id)
       )
       const pricesById = new Map(currentProducts.map((product) => [product.id, Number(product.price)]))
+      const customItemIds = new Map()
+      for (const item of items) {
+        if (item.isCustom && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(item.id)) {
+          const customItemId = await customStickersService.createCartItem({
+            name: item.name,
+            image: item.image,
+          })
+          customItemIds.set(item.id, customItemId)
+        }
+      }
       const orderItems = items.map((item) => ({
-        product_id: item.product_id || item.id,
+        product_id: item.isCustom ? null : (item.product_id || item.id),
+        custom_item_id: item.isCustom ? (customItemIds.get(item.id) || item.id) : null,
         product_name: item.name,
         product_image: item.image || null,
         quantity: item.quantity,
-        price: item.isCustom
+        price: item.is_free_gift
+          ? 0
+          : item.isCustom
           ? CUSTOM_STICKER_PRICE
           : (pricesById.get(item.product_id || item.id) ?? item.price),
         finish_type: item.finish_type || 'matte',
+        is_free_gift: Boolean(item.is_free_gift),
+        is_custom: Boolean(item.isCustom && !item.is_free_gift),
       }))
 
       syncProductPrices(currentProducts)
@@ -220,7 +246,7 @@ if (data.discount_percent <= 0) {
 
       console.log('PAYMENT IMAGE URL BEFORE ORDER:', paymentProofUrl)
       const subtotal = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-      const shipping = subtotal >= 500 ? 0 : getShippingRate(form.governorate)
+      const shipping = getShipping()
       const discountAmount = coupon
         ? Math.round((subtotal * coupon.discount_percent) / 100)
         : 0
@@ -459,14 +485,16 @@ status: 'pending',
                 <h2 className="font-outfit text-xl font-semibold mb-5">Order Summary</h2>
                 <div className="space-y-3 mb-4">
                   {items.map((item) => (
-                    <div key={`${item.id}-${item.finish_type}`} className="flex items-center gap-3">
+                    <div key={`${item.id}-${item.finish_type}-${item.is_free_gift ? 'gift' : 'paid'}`} className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-lg bg-brand-gray-50 dark:bg-brand-gray-800 overflow-hidden shrink-0">
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover"
                           onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(item.name)}&size=100&background=2ECC71&color=fff` }} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.name}</p>
-                        <p className="text-xs text-brand-gray-400">x{item.quantity} • {item.finish_type}</p>
+                        <p className="text-xs text-brand-gray-400">
+                          x{item.quantity} • {item.finish_type}{item.is_free_gift ? ' • FREE' : ''}
+                        </p>
                       </div>
                       <div className="flex flex-col items-end">
                         <span className="text-sm font-medium">{formatPrice(item.price * item.quantity)}</span>

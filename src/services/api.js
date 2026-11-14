@@ -51,6 +51,16 @@ export const reviewsService = {
 }
 
 export const customStickersService = {
+  async createCartItem({ name, image }) {
+    const { data, error } = await supabase.rpc('create_checkout_custom_item', {
+      p_name: name,
+      p_image: image,
+    })
+
+    if (error) throw error
+    return data
+  },
+
   async submit(request) {
     const { data, error } = await supabase.from('custom_stickers').insert(request).select().single()
 

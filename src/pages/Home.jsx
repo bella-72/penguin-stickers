@@ -27,7 +27,7 @@ const Section = ({ children, className = '', delay = 0 }) => {
 /* ─── Hero ──────── */
 const Hero = () => {
   return (
-  <section className="relative overflow-hidden min-h-[90vh] flex items-center">
+  <section className="relative flex min-h-0 items-center overflow-hidden py-8 sm:py-12 md:min-h-[90vh] md:py-0">
     {/* Background decorations */}
     <div className="absolute inset-0 overflow-hidden">
       <div className="absolute top-20 -left-20 w-72 h-72 rounded-full bg-brand-primary/5 blur-3xl" />
@@ -37,28 +37,28 @@ const Hero = () => {
       <motion.div
         animate={{ y: [-10, 10, -10], rotate: [-5, 5, -5] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-32 right-[15%] w-20 h-20 rounded-2xl bg-gradient-to-br from-mint-100 to-mint-200 dark:from-mint-900/30 dark:to-mint-800/20 shadow-lg opacity-60 flex items-center justify-center"
+        className="absolute top-32 right-[15%] hidden h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-mint-100 to-mint-200 opacity-60 shadow-lg dark:from-mint-900/30 dark:to-mint-800/20 sm:flex"
       >
         <span className="text-3xl">🐧</span>
       </motion.div>
       <motion.div
         animate={{ y: [10, -15, 10], rotate: [3, -3, 3] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute top-52 left-[10%] w-16 h-16 rounded-2xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/20 shadow-lg opacity-50 flex items-center justify-center"
+        className="absolute top-52 left-[10%] hidden h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-100 to-emerald-100 opacity-50 shadow-lg dark:from-green-900/30 dark:to-emerald-900/20 sm:flex"
       >
         <span className="text-2xl">✨</span>
       </motion.div>
       <motion.div
         animate={{ y: [-8, 12, -8], rotate: [-2, 4, -2] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute bottom-40 left-[20%] w-14 h-14 rounded-xl bg-gradient-to-br from-teal-100 to-cyan-100 dark:from-teal-900/30 dark:to-cyan-900/20 shadow-md opacity-40 flex items-center justify-center"
+        className="absolute bottom-40 left-[20%] hidden h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-teal-100 to-cyan-100 opacity-40 shadow-md dark:from-teal-900/30 dark:to-cyan-900/20 sm:flex"
       >
         <span className="text-xl">🌿</span>
       </motion.div>
       <motion.div
         animate={{ y: [5, -10, 5] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-        className="absolute top-40 right-[40%] w-12 h-12 rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-900/30 dark:to-rose-900/20 shadow-md opacity-40 flex items-center justify-center"
+        className="absolute top-40 right-[40%] hidden h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-100 to-rose-100 opacity-40 shadow-md dark:from-pink-900/30 dark:to-rose-900/20 sm:flex"
       >
         <span className="text-lg">💖</span>
       </motion.div>
@@ -71,20 +71,20 @@ const Hero = () => {
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="space-y-8"
+          className="space-y-5 sm:space-y-7 lg:space-y-8"
         >
           <div>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 bg-brand-primary/10 rounded-full mb-6"
+              className="mb-3 inline-flex items-center gap-2 rounded-full bg-brand-primary/10 px-3 py-1.5 sm:mb-5 sm:px-4 md:mb-6"
             >
               <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
               <span className="text-sm font-medium text-brand-primary">New Collection 2026</span>
             </motion.div>
 
-            <h1 className="font-outfit text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] text-brand-gray-900 dark:text-white">
+            <h1 className="font-outfit text-4xl font-bold leading-[1.1] text-brand-gray-900 dark:text-white sm:text-5xl lg:text-7xl">
               Express yourself with{' '}
               <br />
               <span className="text-gradient">premium stickers</span>
@@ -93,38 +93,38 @@ const Hero = () => {
             </h1>
           </div>
 
-          <p className="text-lg text-brand-gray-500 dark:text-brand-gray-400 max-w-md leading-relaxed">
+          <p className="max-w-md text-base leading-relaxed text-brand-gray-500 dark:text-brand-gray-400 sm:text-lg">
             Premium vinyl stickers that are waterproof and scratch-resistant. Design your own or choose from our collection.
           </p>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-3 sm:gap-4">
             <Link to="/shop">
-              <Button size="lg" iconRight={ArrowRight}>
+              <Button size="lg" className="!px-5 !py-2.5 text-sm sm:!px-8 sm:!py-3 sm:text-base" iconRight={ArrowRight}>
                 Shop Now
               </Button>
             </Link>
             <Link to="/custom">
-              <Button variant="secondary" size="lg">
+              <Button variant="secondary" size="lg" className="!px-5 !py-2.5 text-sm sm:!px-8 sm:!py-3 sm:text-base">
                 Create Custom Sticker
               </Button>
             </Link>
           </div>
 
           {/* Trust badges */}
-          <div className="flex items-center gap-6 pt-4">
+          <div className="flex items-center gap-3 pt-1 sm:gap-6 sm:pt-4">
             <div className="text-center">
-              <p className="font-outfit font-bold text-2xl text-brand-gray-800 dark:text-white">10K+</p>
+              <p className="font-outfit text-xl font-bold text-brand-gray-800 dark:text-white sm:text-2xl">10K+</p>
               <p className="text-xs text-brand-gray-400">Happy customers</p>
             </div>
             <div className="w-px h-10 bg-brand-gray-200 dark:bg-brand-gray-700" />
             <div className="text-center">
-              <p className="font-outfit font-bold text-2xl text-brand-gray-800 dark:text-white">500+</p>
+              <p className="font-outfit text-xl font-bold text-brand-gray-800 dark:text-white sm:text-2xl">500+</p>
               <p className="text-xs text-brand-gray-400">Designs available</p>
             </div>
             <div className="w-px h-10 bg-brand-gray-200 dark:bg-brand-gray-700" />
             <div className="flex items-center gap-1">
-              <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-              <p className="font-outfit font-bold text-2xl text-brand-gray-800 dark:text-white">4.9</p>
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 sm:h-5 sm:w-5" />
+              <p className="font-outfit text-xl font-bold text-brand-gray-800 dark:text-white sm:text-2xl">4.9</p>
               <p className="text-xs text-brand-gray-400 ml-1">Rating</p>
             </div>
           </div>
@@ -183,11 +183,11 @@ const Hero = () => {
 const ScrollingBanner = () => {
   const items = ['PREMIUM VINYL', 'WATERPROOF', 'DIE-CUT', 'ECO-FRIENDLY', 'SCRATCH-RESISTANT', 'CUSTOM DESIGNS']
   return (
-    <Section className="py-8 border-y border-brand-gray-100 dark:border-brand-gray-800 overflow-hidden">
+    <Section className="overflow-hidden border-y border-brand-gray-100 py-4 dark:border-brand-gray-800 sm:py-6 md:py-8">
       <div className="marquee-container">
         <div className="marquee-content">
           {[...items, ...items].map((item, i) => (
-            <span key={i} className="mx-8 text-2xl md:text-3xl font-outfit font-bold text-brand-gray-200 dark:text-brand-gray-700 whitespace-nowrap tracking-wider">
+            <span key={i} className="mx-5 whitespace-nowrap font-outfit text-xl font-bold tracking-wider text-brand-gray-200 dark:text-brand-gray-700 sm:mx-8 sm:text-2xl md:text-3xl">
               {item}
               <span className="mx-6 text-brand-primary">•</span>
             </span>
@@ -223,12 +223,12 @@ const FeaturedStickers = () => {
   useAutoRefresh(() => loadFeatured(false), 4000)
 
   return (
-    <Section className="py-20">
+    <Section className="py-10 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-10 gap-4">
+        <div className="mb-6 flex items-end justify-between gap-3 sm:mb-10 sm:gap-4">
           <div>
-            <p className="text-sm font-medium text-brand-primary uppercase tracking-wider mb-2">Handpicked for you</p>
-            <h2 className="font-outfit text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-white">
+            <p className="mb-1 text-xs font-medium uppercase tracking-wider text-brand-primary sm:mb-2 sm:text-sm">Handpicked for you</p>
+            <h2 className="font-outfit text-2xl font-bold text-brand-gray-900 dark:text-white md:text-4xl">
               Featured Stickers
             </h2>
           </div>
@@ -238,17 +238,17 @@ const FeaturedStickers = () => {
         </div>
 
         {loading ? (
-          <div className="flex gap-5 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4">
+          <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-4 sm:gap-5">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="min-w-[260px] max-w-[260px]">
-                <div className="h-[360px] rounded-2xl bg-brand-gray-100 dark:bg-brand-gray-800 animate-pulse" />
+              <div key={index} className="w-[72vw] min-w-[210px] max-w-[260px] shrink-0 sm:w-[260px]">
+                <div className="aspect-[0.72] rounded-2xl bg-brand-gray-100 dark:bg-brand-gray-800 animate-pulse" />
               </div>
             ))}
           </div>
         ) : featured.length > 0 ? (
-          <div className="flex gap-5 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 snap-x snap-mandatory">
+          <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-4 sm:gap-5">
             {featured.map((product, i) => (
-              <div key={product.id} className="min-w-[260px] max-w-[260px] snap-start">
+              <div key={product.id} className="w-[72vw] min-w-[210px] max-w-[260px] shrink-0 snap-start sm:w-[260px]">
                 <ProductCard product={product} index={i} />
               </div>
             ))}
@@ -259,7 +259,7 @@ const FeaturedStickers = () => {
           </div>
         )}
 
-        <Link to="/shop" className="md:hidden flex items-center justify-center gap-1 text-sm font-medium text-brand-primary mt-6">
+        <Link to="/shop" className="mt-4 flex items-center justify-center gap-1 text-sm font-medium text-brand-primary md:hidden">
           View All Products <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
@@ -269,20 +269,20 @@ const FeaturedStickers = () => {
 
 /* ─── Custom Orders CTA ──────── */
 const CustomOrdersCTA = () => (
-  <Section className="py-20 bg-gradient-to-br from-brand-primary to-brand-accent text-white relative overflow-hidden">
+  <Section className="relative overflow-hidden bg-gradient-to-br from-brand-primary to-brand-accent py-10 text-white md:py-20">
     <div className="absolute inset-0 overflow-hidden">
       <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/10 blur-2xl" />
       <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full bg-white/5 blur-2xl" />
     </div>
 
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      <div className="grid md:grid-cols-2 gap-12 items-center">
-        <div className="space-y-6">
-          <h2 className="font-outfit text-3xl md:text-4xl font-bold leading-tight">
+      <div className="grid items-center gap-8 md:grid-cols-2 md:gap-12">
+        <div className="space-y-4 sm:space-y-6">
+          <h2 className="font-outfit text-2xl font-bold leading-tight sm:text-3xl md:text-4xl">
             Bring Your Vision To Life With{' '}
             <span className="underline decoration-white/30 underline-offset-4">Custom Orders</span>
           </h2>
-          <p className="text-white/80 leading-relaxed">
+          <p className="text-sm leading-relaxed text-white/80 sm:text-base">
             Whether you're a business owner creating branded merch, or an artist bringing your designs to life — 
             our custom sticker builder makes it easy. Upload your artwork and we'll handle the rest.
           </p>
@@ -333,17 +333,17 @@ const WhyChooseUs = () => {
   ]
 
   return (
-    <Section className="py-20">
+    <Section className="py-10 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p className="text-sm font-medium text-brand-primary uppercase tracking-wider mb-2">Built to last</p>
-        <h2 className="font-outfit text-3xl md:text-4xl font-bold text-brand-gray-900 dark:text-white mb-4">
+        <p className="mb-1 text-xs font-medium uppercase tracking-wider text-brand-primary sm:mb-2 sm:text-sm">Built to last</p>
+        <h2 className="mb-3 font-outfit text-2xl font-bold text-brand-gray-900 dark:text-white sm:mb-4 md:text-4xl">
           Why Choose Us
         </h2>
-        <p className="text-brand-gray-500 dark:text-brand-gray-400 max-w-xl mx-auto mb-14">
+        <p className="mx-auto mb-8 max-w-xl text-sm text-brand-gray-500 dark:text-brand-gray-400 sm:mb-14 sm:text-base">
           Our stickers are pretty, but they're also incredibly durable. Here's why 10,000+ customers trust us.
         </p>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
           {features.map((f, i) => (
             <motion.div
               key={f.title}
@@ -351,13 +351,13 @@ const WhyChooseUs = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              className="group bg-white dark:bg-brand-dark rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-500 hover:-translate-y-1"
+              className="group rounded-2xl bg-white p-4 shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-card-hover dark:bg-brand-dark sm:p-6"
             >
-              <div className="w-14 h-14 rounded-2xl bg-brand-primary/10 flex items-center justify-center mx-auto mb-5 group-hover:bg-brand-primary/20 transition-colors">
-                <f.icon className="w-7 h-7 text-brand-primary" />
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-primary/10 transition-colors group-hover:bg-brand-primary/20 sm:mb-5 sm:h-14 sm:w-14">
+                <f.icon className="h-5 w-5 text-brand-primary sm:h-7 sm:w-7" />
               </div>
-              <h3 className="font-outfit font-semibold text-lg mb-2 text-brand-gray-800 dark:text-white">{f.title}</h3>
-              <p className="text-sm text-brand-gray-500 dark:text-brand-gray-400 leading-relaxed">{f.desc}</p>
+              <h3 className="mb-1 font-outfit text-base font-semibold text-brand-gray-800 dark:text-white sm:mb-2 sm:text-lg">{f.title}</h3>
+              <p className="text-xs leading-relaxed text-brand-gray-500 dark:text-brand-gray-400 sm:text-sm">{f.desc}</p>
             </motion.div>
           ))}
         </div>
