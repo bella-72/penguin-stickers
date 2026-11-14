@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { flushSync } from 'react-dom'
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Gift, Minus, Plus, ShoppingCart, Trash2, Truck, X } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
@@ -8,7 +7,6 @@ import { formatPrice } from '@/utils/helpers'
 import { getStickerBundleProgress } from '@/utils/stickerBundles'
 
 const CartDrawer = ({ isOpen, onClose }) => {
-  const navigate = useNavigate()
   const items = useCartStore((state) => state.items)
   const selectedGovernorate = useCartStore((state) => state.selectedGovernorate)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
@@ -32,11 +30,6 @@ const CartDrawer = ({ isOpen, onClose }) => {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
-
-  const goToCheckout = () => {
-    flushSync(onClose)
-    navigate('/checkout')
-  }
 
   return (
     <AnimatePresence>
@@ -243,14 +236,23 @@ const CartDrawer = ({ isOpen, onClose }) => {
                       <span className="text-brand-primary">{formatPrice(total)}</span>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={goToCheckout}
-                    disabled={giftsOverAllowance}
-                    className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-mint px-5 text-sm font-semibold text-white shadow-mint transition hover:shadow-mint-lg disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Checkout <ArrowRight className="h-4 w-4" />
-                  </button>
+                  {giftsOverAllowance ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-mint px-5 text-sm font-semibold text-white shadow-mint transition hover:shadow-mint-lg disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Checkout <ArrowRight className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <Link
+                      to="/checkout"
+                      onClick={onClose}
+                      className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-mint px-5 text-sm font-semibold text-white shadow-mint transition hover:shadow-mint-lg"
+                    >
+                      Checkout <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  )}
                 </footer>
               </>
             )}
