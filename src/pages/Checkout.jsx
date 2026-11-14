@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
@@ -29,6 +29,7 @@ const Checkout = () => {
   const freeGiftCount = useCartStore((state) => state.getFreeStickerCount())
   const freeGiftAllowance = useCartStore((state) => state.getFreeStickerAllowance())
   const [loading, setLoading] = useState(false)
+  const orderSubmissionInProgress = useRef(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState('cod')
 
@@ -180,6 +181,7 @@ if (data.discount_percent <= 0) {
 };
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (orderSubmissionInProgress.current) return
     if (freeGiftCount > freeGiftAllowance) {
       toast.error(`Remove ${freeGiftCount - freeGiftAllowance} extra free sticker${freeGiftCount - freeGiftAllowance === 1 ? '' : 's'} before checkout.`)
       return
@@ -211,6 +213,7 @@ if (data.discount_percent <= 0) {
       }
     }
     
+    orderSubmissionInProgress.current = true
     setLoading(true)
 
     try {
@@ -284,12 +287,6 @@ status: 'pending',
       console.log(orderPayload)
 
       const createdOrder = await ordersService.create(orderPayload)
-      ReactPixel.track('Purchase', {
-  value: total,
-  currency: 'EGP',
-  content_type: 'product',
-  num_items: items.length
-})
       console.log('Checkout order inserted successfully', createdOrder)
 
       clearCart()
@@ -298,6 +295,17 @@ status: 'pending',
       setSuccessOrder(createdOrder)
       setIsLoggedIn(Boolean(user?.id))
       setOrderPlaced(true)
+
+      try {
+        ReactPixel.track('Purchase', {
+          value: total,
+          currency: 'EGP',
+          content_type: 'product',
+          num_items: items.length
+        })
+      } catch (trackingError) {
+        console.error('Purchase tracking failed:', trackingError)
+      }
       
     } catch (error) {
       console.log('supabase error:', error)
@@ -306,6 +314,7 @@ status: 'pending',
       console.log(error?.hint)
       toast.error(error?.message || 'Failed to place order. Please try again.')
     } finally {
+      orderSubmissionInProgress.current = false
       setLoading(false)
     }
   }
