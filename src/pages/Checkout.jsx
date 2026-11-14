@@ -24,7 +24,7 @@ const normalizePaymentMethod = (value) => {
 const Checkout = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { items, getSubtotal, getShipping, getTotal, clearCart, setGovernorate, syncProductPrices } = useCartStore()
+  const { items, selectedGovernorate, getSubtotal, getShipping, getTotal, clearCart, setGovernorate, syncProductPrices } = useCartStore()
   const paidStickerCount = useCartStore((state) => state.getPaidStickerCount())
   const freeGiftCount = useCartStore((state) => state.getFreeStickerCount())
   const freeGiftAllowance = useCartStore((state) => state.getFreeStickerAllowance())
@@ -43,7 +43,7 @@ const paymentMethods = [
   { id: 'instapay', name: t('instapay'), icon: CreditCard, desc: t('checkout.instapay_desc') },
 ]
   const [form, setForm] = useState({
-    firstName: '', fatherName: '', lastName: '', phone: '', address: '', governorate: '', notes: ''
+    firstName: '', fatherName: '', lastName: '', phone: '', address: '', governorate: selectedGovernorate, notes: ''
   })
   const [paymentDetails, setPaymentDetails] = useState({
     transactionId: '',
@@ -56,6 +56,16 @@ const paymentMethods = [
   const [successOrder, setSuccessOrder] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const productIds = items.map((item) => item.product_id || item.id).join(',')
+
+  useEffect(() => {
+    if (selectedGovernorate) {
+      setForm((currentForm) => (
+        currentForm.governorate
+          ? currentForm
+          : { ...currentForm, governorate: selectedGovernorate }
+      ))
+    }
+  }, [selectedGovernorate])
 
   useEffect(() => {
     if (!productIds) return
