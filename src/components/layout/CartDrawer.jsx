@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Gift, Minus, Plus, ShoppingCart, Trash2, Truck, X } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
@@ -7,6 +7,7 @@ import { formatPrice } from '@/utils/helpers'
 import { getStickerBundleProgress } from '@/utils/stickerBundles'
 
 const CartDrawer = ({ isOpen, onClose }) => {
+  const navigate = useNavigate()
   const items = useCartStore((state) => state.items)
   const selectedGovernorate = useCartStore((state) => state.selectedGovernorate)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
@@ -19,6 +20,11 @@ const CartDrawer = ({ isOpen, onClose }) => {
   const freeGiftAllowance = useCartStore((state) => state.getFreeStickerAllowance())
   const bundleProgress = getStickerBundleProgress(paidStickerCount)
   const giftsOverAllowance = freeGiftCount > freeGiftAllowance
+
+  const goToCheckout = () => {
+    navigate('/checkout')
+    onClose()
+  }
 
   useEffect(() => {
     if (!isOpen) return undefined
@@ -245,13 +251,13 @@ const CartDrawer = ({ isOpen, onClose }) => {
                       Checkout <ArrowRight className="h-4 w-4" />
                     </button>
                   ) : (
-                    <Link
-                      to="/checkout"
-                      onClick={onClose}
+                    <button
+                      type="button"
+                      onClick={goToCheckout}
                       className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-mint px-5 text-sm font-semibold text-white shadow-mint transition hover:shadow-mint-lg"
                     >
                       Checkout <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    </button>
                   )}
                 </footer>
               </>
