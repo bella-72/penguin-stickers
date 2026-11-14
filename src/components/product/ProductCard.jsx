@@ -128,10 +128,10 @@ const ProductCard = ({ product, index = 0 }) => {
           <img
             src={imageUrl}
             alt=""
-            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${
+            className={`w-full h-full object-contain transition-transform duration-700 group-hover:scale-110 sm:object-cover ${
               imageLoaded ? "opacity-100" : "opacity-0"
             }`}
-            loading="lazy"
+            loading={index < 4 ? 'eager' : 'lazy'}
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
               e.target.src =
